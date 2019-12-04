@@ -2,8 +2,8 @@ mod vector;
 
 use vector::Vector3;
 
-use std::fs;
 use std::fmt::Write;
+use std::fs;
 
 fn main() {
     // Create a string to hold the PPM data
