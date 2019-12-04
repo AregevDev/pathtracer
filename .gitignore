@@ -1,0 +1,7 @@
+# Dirs
+/target
+/.idea
+
+# Files
+**/*.rs.bk
+Cargo.lock
