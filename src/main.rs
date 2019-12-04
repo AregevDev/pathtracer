@@ -1,3 +1,7 @@
+mod vector;
+
+use vector::Vector3;
+
 use std::fs;
 use std::fmt::Write;
 
@@ -15,13 +19,15 @@ fn main() {
     // Write pixels
     for j in 0..width {
         for i in 0..height {
-            let red = (i as f32) / (width as f32);
-            let green = (j as f32) / (height as f32);
-            let blue = 1.0f32;
+            let col = Vector3::new(
+                (i as f32) / (width as f32),
+                (j as f32) / (height as f32),
+                1.0,
+            );
 
-            let ir = (255.0 * red) as i32;
-            let ig = (255.0 * green) as i32;
-            let ib = (255.0 * blue) as i32;
+            let ir = (255.0 * col.x) as i32;
+            let ig = (255.0 * col.y) as i32;
+            let ib = (255.0 * col.z) as i32;
 
             write!(&mut img_data, "{} {} {}\n", ir, ig, ib).unwrap();
         }
