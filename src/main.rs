@@ -1,12 +1,14 @@
 use std::fmt::Write;
 use std::fs;
 
+use crate::camera::Camera;
 use crate::hit::Hit;
 use crate::hit_list::HitList;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vector::Vector3;
 
+mod camera;
 mod hit;
 mod hit_list;
 mod ray;
@@ -30,14 +32,11 @@ fn main() {
     let mut img_data = String::new();
 
     // Set image width and height
-    let width = 100;
-    let height = 100;
+    let width = 500;
+    let height = 500;
 
-    // Define camera vectors
-    let ll_corner = Vector3::new(-1.0, -1.0, -1.0);
-    let horizontal = Vector3::new(2.0, 0.0, 0.0);
-    let vertical = Vector3::new(0.0, 2.0, 0.0);
-    let origin = Vector3::new(0.0, 0.0, 0.0);
+    // Define camera
+    let cam = Camera::new();
 
     // Define world
     let mut hl = HitList::new();
@@ -57,7 +56,7 @@ fn main() {
             let u = i as f32 / width as f32;
             let v = j as f32 / height as f32;
 
-            let r = Ray::new(origin, ll_corner + horizontal * u + vertical * v);
+            let r = cam.get_ray(u, v);
             let col = compute_color(r, &hl);
 
             let ir = (255.0 * col.x) as i32;

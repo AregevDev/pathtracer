@@ -25,15 +25,7 @@ impl Hit for Sphere {
         let mut record = HitRecord::new();
 
         if discriminant > 0.0 {
-            let mut temp = (-b - (b * b - a * c).sqrt()) / a;
-            if temp < t_max && temp > t_min {
-                record.t = temp;
-                record.p = r.point_at_parameter(record.t);
-                record.normal = (record.p - self.center) / self.radius;
-                return (true, record);
-            }
-
-            temp = (-b + (b * b - a * c).sqrt()) / a;
+            let temp = (-b - (b * b - a * c).sqrt()) / a;
             if temp < t_max && temp > t_min {
                 record.t = temp;
                 record.p = r.point_at_parameter(record.t);
