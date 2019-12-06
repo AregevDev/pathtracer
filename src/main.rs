@@ -7,6 +7,7 @@ use crate::hit_list::HitList;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vector::Vector3;
+use rand::Rng;
 
 mod camera;
 mod hit;
@@ -29,11 +30,15 @@ fn compute_color(r: Ray, world: &HitList) -> Vector3 {
 
 fn main() {
     // Create a string to hold the PPM data
-    let mut img_data = String::new();
+    let mut img_data = String::with_capacity(100000);
+
+    // Random generator
+    let mut rnd = rand::thread_rng();
 
     // Set image width and height
     let width = 500;
     let height = 500;
+    let samples = 100;
 
     // Define camera
     let cam = Camera::new();
@@ -52,12 +57,17 @@ fn main() {
     // Write pixels
     for j in (0..=height).rev() {
         for i in 0..width {
-            // Normalized UV coordinates
-            let u = i as f32 / width as f32;
-            let v = j as f32 / height as f32;
+            let mut col = Vector3::new(0.0, 0.0, 0.0);
+            for s in 0..samples {
+                // Normalized UV coordinates
+                let u = (i as f32 + rnd.gen::<f32>()) / width as f32;
+                let v = (j as f32 + rnd.gen::<f32>()) / height as f32;
 
-            let r = cam.get_ray(u, v);
-            let col = compute_color(r, &hl);
+                let r = cam.get_ray(u, v);
+                col += compute_color(r, &hl);
+            }
+
+            col /= samples as f32;
 
             let ir = (255.0 * col.x) as i32;
             let ig = (255.0 * col.y) as i32;
