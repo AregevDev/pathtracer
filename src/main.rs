@@ -22,14 +22,14 @@ fn random_in_unit_sphere() -> Vector3 {
 
     loop {
         p = Vector3::new(rnd.gen::<f32>(), rnd.gen::<f32>(), rnd.gen::<f32>()) * 2.0 - Vector3::new(1.0, 1.0, 1.0);
-        if p.squared_length() >= 1.0 { break; }
+        if p.squared_length() < 1.0 { break; }
     }
 
     p
 }
 
 fn compute_color(r: Ray, world: &HitList) -> Vector3 {
-    let (hit, record) = world.hit(r, 0.00001, std::f32::MAX);
+    let (hit, record) = world.hit(r, 0.001, std::f32::MAX);
     if hit {
         let target = record.p + record.normal + random_in_unit_sphere();
         return compute_color(Ray::new(record.p, target - record.p), world) * 0.5;
