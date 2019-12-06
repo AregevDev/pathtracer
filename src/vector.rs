@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
@@ -47,6 +49,14 @@ impl Vector3 {
             x: (self.y * other.z - self.z * other.y),
             y: -(self.x * other.z - self.z * other.x),
             z: (self.x * other.y - self.y * other.x),
+        }
+    }
+
+    pub fn abs(&self) -> Vector3 {
+        Vector3 {
+            x: self.x.abs(),
+            y: self.y.abs(),
+            z: self.z.abs(),
         }
     }
 }
