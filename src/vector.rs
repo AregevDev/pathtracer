@@ -59,6 +59,14 @@ impl Vector3 {
             z: self.z.abs(),
         }
     }
+
+    pub fn sqrt(&self) -> Vector3 {
+        Vector3 {
+            x: self.x.sqrt(),
+            y: self.y.sqrt(),
+            z: self.z.sqrt(),
+        }
+    }
 }
 
 impl fmt::Display for Vector3 {
