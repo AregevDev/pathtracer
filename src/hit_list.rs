@@ -11,7 +11,7 @@ impl HitList {
         HitList::default()
     }
 
-    pub fn add<H : Hit + 'static>(&mut self, hit: H) {
+    pub fn add<H: Hit + 'static>(&mut self, hit: H) {
         self.hits.push(Box::new(hit));
     }
 }

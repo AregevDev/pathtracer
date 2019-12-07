@@ -1,16 +1,23 @@
 use crate::hit::{Hit, HitRecord};
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vector::Vector3;
+use std::cell::RefCell;
+use std::rc::Rc;
 
-#[derive(Debug, Default, PartialEq, Copy, Clone)]
 pub struct Sphere {
     pub center: Vector3,
     pub radius: f32,
+    pub material: Rc<RefCell<dyn Material>>,
 }
 
 impl Sphere {
-    pub fn new(center: Vector3, radius: f32) -> Self {
-        Sphere { center, radius }
+    pub fn new<M: Material + 'static>(center: Vector3, radius: f32, material: M) -> Self {
+        Sphere {
+            center,
+            radius,
+            material: Rc::new(RefCell::new(material)),
+        }
     }
 }
 
@@ -30,6 +37,7 @@ impl Hit for Sphere {
                 record.t = temp;
                 record.p = r.point_at_parameter(record.t);
                 record.normal = (record.p - self.center) / self.radius;
+                record.material = self.material.clone();
                 return (true, record);
             }
         }

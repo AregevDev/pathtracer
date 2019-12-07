@@ -4,14 +4,17 @@ use std::fs;
 use crate::camera::Camera;
 use crate::hit::Hit;
 use crate::hit_list::HitList;
+use crate::material::{Diffuse, Metal};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vector::Vector3;
 use rand::Rng;
+use std::time::Instant;
 
 mod camera;
 mod hit;
 mod hit_list;
+mod material;
 mod ray;
 mod sphere;
 mod vector;
@@ -31,11 +34,14 @@ fn random_in_unit_sphere() -> Vector3 {
     p
 }
 
-fn compute_color(r: Ray, world: &HitList) -> Vector3 {
+fn compute_color(r: Ray, world: &HitList, depth: i32) -> Vector3 {
     let (hit, record) = world.hit(r, 0.001, std::f32::MAX);
+
     if hit {
-        let target = record.p + record.normal + random_in_unit_sphere();
-        return compute_color(Ray::new(record.p, target - record.p), world) * 0.5;
+        let (scattered, attenuation, ray_out) = record.material.borrow().scatter(r, &record);
+        if depth < 50 && scattered {
+            return attenuation * compute_color(ray_out, &world, depth + 1) * 0.5;
+        }
     }
 
     let unit_dir = r.direction.normalize();
@@ -53,18 +59,36 @@ fn main() {
     // Set image width and height
     let width = 500;
     let height = 500;
-    let samples = 1;
+    let samples = 100;
 
     // Define camera
     let cam = Camera::new();
 
     // Define world
     let mut hl = HitList::new();
-    hl.add(Sphere::new(Vector3::new(0.0, 0.0, -1.0), 0.5));
+    hl.add(Sphere::new(
+        Vector3::new(0.0, 0.0, -1.0),
+        0.5,
+        Diffuse::new(Vector3::new(0.8, 0.3, 0.3)),
+    ));
+    hl.add(Sphere::new(
+        Vector3::new(-1.0, 0.0, -1.0),
+        0.5,
+        Metal::new(Vector3::new(0.8, 0.8, 0.8), 0.1),
+    ));
+    hl.add(Sphere::new(
+        Vector3::new(1.0, 0.0, -1.0),
+        0.5,
+        Metal::new(Vector3::new(0.8, 0.6, 0.2), 0.3),
+    ));
     hl.add(Sphere::new(
         Vector3::new(0.0, -100.5, -10.0),
         100.0,
+        Diffuse::new(Vector3::new(0.8, 0.8, 0.0)),
     ));
+
+    // Start counting
+    let inst = Instant::now();
 
     // Write the file headers
     write!(&mut img_data, "P3\n{} {}\n255\n", width, height).unwrap();
@@ -79,7 +103,7 @@ fn main() {
                 let v = (j as f32 + rnd.gen::<f32>()) / height as f32;
 
                 let r = cam.get_ray(u, v);
-                col += compute_color(r, &hl);
+                col += compute_color(r, &hl, 0);
             }
 
             col /= samples as f32;
@@ -95,5 +119,11 @@ fn main() {
 
     // Write the entire image data to the file
     fs::write("test.ppm", img_data).unwrap();
-    println!("Image written successfully!");
+
+    // Measure how long it rendered
+    let duration = inst.elapsed().as_secs_f32();
+    println!(
+        "Image written successfully!\nRendered in {:.1} minutes",
+        duration / 60.0
+    );
 }

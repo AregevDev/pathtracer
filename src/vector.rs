@@ -67,6 +67,10 @@ impl Vector3 {
             z: self.z.sqrt(),
         }
     }
+
+    pub fn reflect(&self, other: &Vector3) -> Vector3 {
+        *self - *other * self.dot(&other) * 2.0
+    }
 }
 
 impl fmt::Display for Vector3 {
