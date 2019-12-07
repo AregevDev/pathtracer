@@ -57,8 +57,8 @@ fn main() {
     let mut rnd = rand::thread_rng();
 
     // Set image width and height
-    let width = 500;
-    let height = 500;
+    let width = 200;
+    let height = 100;
     let samples = 100;
 
     // Define camera
@@ -74,7 +74,7 @@ fn main() {
     hl.add(Sphere::new(
         Vector3::new(-1.0, 0.0, -1.0),
         0.5,
-        Metal::new(Vector3::new(0.8, 0.8, 0.8), 0.1),
+        Metal::new(Vector3::new(0.8, 0.8, 0.8), 0.0),
     ));
     hl.add(Sphere::new(
         Vector3::new(1.0, 0.0, -1.0),

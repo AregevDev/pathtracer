@@ -37,7 +37,7 @@ pub struct Metal {
 
 impl Metal {
     pub fn new(albedo: Vector3, fuzz: f32) -> Self {
-        let new_fuzz = if fuzz < 1.0 { fuzz } else { 1.0 };
+        let new_fuzz = fuzz.min(1.0);
 
         Metal {
             albedo,
@@ -53,7 +53,7 @@ impl Material for Metal {
         let ray_out = Ray::new(record.p, random_in_unit_sphere() * self.fuzz + reflected);
 
         (
-            ray_out.direction.dot(&record.normal) > 0.0,
+            ray_out.direction.normalize().dot(&record.normal) > 0.0,
             attenuation,
             ray_out,
         )
