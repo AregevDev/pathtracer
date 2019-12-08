@@ -57,8 +57,8 @@ fn main() {
     let mut rnd = rand::thread_rng();
 
     // Set image width and height
-    let width = 200;
-    let height = 100;
+    let width = 500;
+    let height = 500;
     let samples = 100;
 
     // Define camera
@@ -67,24 +67,29 @@ fn main() {
     // Define world
     let mut hl = HitList::new();
     hl.add(Sphere::new(
-        Vector3::new(0.0, 0.0, -1.0),
+        Vector3::new(0.0, 0.0, -1.5),
         0.5,
         Diffuse::new(Vector3::new(0.8, 0.3, 0.3)),
     ));
     hl.add(Sphere::new(
-        Vector3::new(-1.0, 0.0, -1.0),
+        Vector3::new(-1.0, 0.0, -1.5),
         0.5,
-        Metal::new(Vector3::new(0.8, 0.8, 0.8), 0.0),
+        Metal::new(Vector3::new(1.0, 1.0, 1.0), 0.0),
     ));
     hl.add(Sphere::new(
-        Vector3::new(1.0, 0.0, -1.0),
+        Vector3::new(2.5, 1.0, -2.5),
         0.5,
-        Metal::new(Vector3::new(0.8, 0.6, 0.2), 0.3),
+        Metal::new(Vector3::new(0.0, 0.8, 0.8), 0.0),
     ));
     hl.add(Sphere::new(
-        Vector3::new(0.0, -100.5, -10.0),
+        Vector3::new(0.0, -100.5, -2.0),
         100.0,
         Diffuse::new(Vector3::new(0.8, 0.8, 0.0)),
+    ));
+    hl.add(Sphere::new(
+        Vector3::new(0.45, 0.0, -3.0),
+        1.4,
+        Metal::new(Vector3::new(0.027, 0.863, 0.145), 0.0),
     ));
 
     // Start counting

@@ -14,7 +14,7 @@ impl Camera {
         Camera {
             corner: Vector3::new(-2.0, -1.0, -1.0),
             horizontal: Vector3::new(4.0, 0.0, 0.0),
-            vertical: Vector3::new(0.0, 2.0, 0.0),
+            vertical: Vector3::new(0.0, 4.0, 0.0),
             origin: Vector3::new(0.0, 0.0, 0.0),
         }
     }
