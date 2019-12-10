@@ -4,7 +4,7 @@ use std::fs;
 use crate::camera::Camera;
 use crate::hit::Hit;
 use crate::hit_list::HitList;
-use crate::material::{Diffuse, Metal};
+use crate::material::{Lambertian, Metal};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vector::Vector3;
@@ -59,7 +59,7 @@ fn main() {
     // Set image width and height
     let width = 500;
     let height = 500;
-    let samples = 100;
+    let samples = 1;
 
     // Define camera
     let cam = Camera::new();
@@ -69,7 +69,7 @@ fn main() {
     hl.add(Sphere::new(
         Vector3::new(0.0, 0.0, -1.5),
         0.5,
-        Diffuse::new(Vector3::new(0.8, 0.3, 0.3)),
+        Lambertian::new(Vector3::new(0.8, 0.3, 0.3)),
     ));
     hl.add(Sphere::new(
         Vector3::new(-1.0, 0.0, -1.5),
@@ -84,7 +84,7 @@ fn main() {
     hl.add(Sphere::new(
         Vector3::new(0.0, -100.5, -2.0),
         100.0,
-        Diffuse::new(Vector3::new(0.8, 0.8, 0.0)),
+        Lambertian::new(Vector3::new(0.8, 0.8, 0.0)),
     ));
     hl.add(Sphere::new(
         Vector3::new(0.45, 0.0, -3.0),

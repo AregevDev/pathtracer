@@ -9,17 +9,17 @@ pub trait Material {
 }
 
 #[derive(Debug)]
-pub struct Diffuse {
+pub struct Lambertian {
     albedo: Vector3,
 }
 
-impl Diffuse {
+impl Lambertian {
     pub fn new(albedo: Vector3) -> Self {
-        Diffuse { albedo }
+        Lambertian { albedo }
     }
 }
 
-impl Material for Diffuse {
+impl Material for Lambertian {
     fn scatter(&self, _ray_in: Ray, record: &HitRecord) -> (bool, Vector3, Ray) {
         let target = record.p + record.normal + random_in_unit_sphere();
         let attenuation = self.albedo;

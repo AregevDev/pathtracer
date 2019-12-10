@@ -1,4 +1,4 @@
-use crate::material::{Diffuse, Material};
+use crate::material::{Lambertian, Material};
 use crate::ray::Ray;
 use crate::vector::Vector3;
 use std::cell::RefCell;
@@ -17,7 +17,7 @@ impl HitRecord {
             t: 0.0,
             p: Vector3::new(0.0, 0.0, 0.0),
             normal: Vector3::new(0.0, 0.0, 0.0),
-            material: Rc::new(RefCell::new(Diffuse::new(Vector3::new(0.0, 0.0, 0.0)))),
+            material: Rc::new(RefCell::new(Lambertian::new(Vector3::new(0.0, 0.0, 0.0)))),
         }
     }
 }
