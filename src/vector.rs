@@ -73,14 +73,14 @@ impl Vector3 {
     }
 
     pub fn refract(&self, other: &Vector3, refractive: f32) -> (bool, Vector3) {
-        let dot = self.normalize().dot(&other.normalize());
-        let k = 1.0 - refractive * refractive * (1.0 - dot * dot);
+        let ni = other.dot(self);
+        let k = 1.0 - refractive * refractive * (1.0 - ni * ni);
 
         if k < 0.0 {
             return (false, Vector3::default())
         }
 
-        (true, *self * *other - (refractive * dot + k.sqrt()) * refractive)
+        (true, *self * refractive - *other * (refractive * other.dot(self) + k.sqrt()))
     }
 }
 
