@@ -71,6 +71,17 @@ impl Vector3 {
     pub fn reflect(&self, other: &Vector3) -> Vector3 {
         *self - *other * self.dot(&other) * 2.0
     }
+
+    pub fn refract(&self, other: &Vector3, refractive: f32) -> (bool, Vector3) {
+        let dot = self.normalize().dot(&other.normalize());
+        let k = 1.0 - refractive * refractive * (1.0 - dot * dot);
+
+        if k < 0.0 {
+            return (false, Vector3::default())
+        }
+
+        (true, *self * *other - (refractive * dot + k.sqrt()) * refractive)
+    }
 }
 
 impl fmt::Display for Vector3 {
