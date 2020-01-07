@@ -4,7 +4,7 @@ use std::fs;
 use crate::camera::Camera;
 use crate::hit::Hit;
 use crate::hit_list::HitList;
-use crate::material::{Lambertian, Metal};
+use crate::material::{Lambertian, Metal, Dielectric};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vector::Vector3;
@@ -50,16 +50,17 @@ fn compute_color(r: Ray, world: &HitList, depth: i32) -> Vector3 {
 }
 
 fn main() {
-    // Create a string to hold the PPM data
-    let mut img_data = String::with_capacity(100000);
 
     // Random generator
     let mut rnd = rand::thread_rng();
 
     // Set image width and height
-    let width = 500;
-    let height = 500;
+    let width = 512;
+    let height = 512;
     let samples = 1;
+
+    // Create a string to hold the PPM data
+    let mut img_data = String::with_capacity(width * height * samples);
 
     // Define camera
     let cam = Camera::new();
@@ -67,29 +68,24 @@ fn main() {
     // Define world
     let mut hl = HitList::new();
     hl.add(Sphere::new(
-        Vector3::new(0.0, 0.0, -1.5),
+        Vector3::new(0.0, 0.0, -1.0),
         0.5,
-        Lambertian::new(Vector3::new(0.8, 0.3, 0.3)),
+        Lambertian::new(Vector3::new(0.1, 0.2, 0.5)),
     ));
     hl.add(Sphere::new(
-        Vector3::new(-1.0, 0.0, -1.5),
-        0.5,
-        Metal::new(Vector3::new(1.0, 1.0, 1.0), 0.0),
-    ));
-    hl.add(Sphere::new(
-        Vector3::new(2.5, 1.0, -2.5),
-        0.5,
-        Metal::new(Vector3::new(0.0, 0.8, 0.8), 0.0),
-    ));
-    hl.add(Sphere::new(
-        Vector3::new(0.0, -100.5, -2.0),
+        Vector3::new(0.0, -100.5, -1.0),
         100.0,
         Lambertian::new(Vector3::new(0.8, 0.8, 0.0)),
     ));
     hl.add(Sphere::new(
-        Vector3::new(0.45, 0.0, -3.0),
-        1.4,
-        Metal::new(Vector3::new(0.027, 0.863, 0.145), 0.0),
+        Vector3::new(1.0, 0.0, -1.0),
+        0.5,
+        Metal::new(Vector3::new(0.8, 0.6, 0.2), 0.0),
+    ));
+    hl.add(Sphere::new(
+        Vector3::new(-1.0, 0.0, -1.0),
+        0.5,
+        Dielectric::new(1.5),
     ));
 
     // Start counting

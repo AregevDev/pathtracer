@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use std::fmt;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign, Neg};
 
 #[derive(Debug, Default, PartialEq, Copy, Clone)]
 pub struct Vector3 {
@@ -247,5 +247,17 @@ impl DivAssign<f32> for Vector3 {
         self.x /= rhs;
         self.y /= rhs;
         self.z /= rhs;
+    }
+}
+
+impl Neg for Vector3 {
+    type Output = Vector3;
+
+    fn neg(self) -> Self::Output {
+        Vector3 {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
     }
 }
