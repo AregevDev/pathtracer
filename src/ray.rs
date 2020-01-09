@@ -1,6 +1,6 @@
 use crate::vector::Vector3;
 
-#[derive(Debug, Default, PartialEq, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Ray {
     pub origin: Vector3,
     pub direction: Vector3,
@@ -12,6 +12,6 @@ impl Ray {
     }
 
     pub fn point_at_parameter(&self, t: f32) -> Vector3 {
-        self.origin + self.direction * t
+        self.origin + t * self.direction
     }
 }

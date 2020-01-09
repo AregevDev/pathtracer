@@ -4,5 +4,5 @@
 
 # Files
 **/*.rs.bk
-Cargo.lock
-test.ppm
+*.lock
+*.ppm

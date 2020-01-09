@@ -1,14 +1,13 @@
 use crate::hit::{Hit, HitRecord};
 use crate::ray::Ray;
 
-#[derive(Default)]
 pub struct HitList {
     pub hits: Vec<Box<dyn Hit>>,
 }
 
 impl HitList {
     pub fn new() -> Self {
-        HitList::default()
+        HitList { hits: vec![] }
     }
 
     pub fn add<H: Hit + 'static>(&mut self, hit: H) {
@@ -17,20 +16,22 @@ impl HitList {
 }
 
 impl Hit for HitList {
-    fn hit(&self, r: Ray, t_min: f32, t_max: f32) -> (bool, HitRecord) {
-        let mut temp_rec = HitRecord::new();
-        let mut hit_anything = false;
-        let mut closest = t_max;
-        for hit in self.hits.iter() {
-            let (hit, record) = hit.hit(r, t_min, closest);
+    fn hit(&self, r: Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        let mut hit: Option<HitRecord> = None;
 
-            if hit {
-                hit_anything = true;
-                closest = record.t;
-                temp_rec = record;
+        for hittable in self.hits.iter() {
+            if let Some(rec) = hittable.hit(r, t_min, t_max) {
+                match hit {
+                    None => hit = Some(rec),
+                    Some(prev) => {
+                        if rec.t < prev.t {
+                            hit = Some(rec)
+                        }
+                    }
+                }
             }
         }
 
-        (hit_anything, temp_rec)
+        hit
     }
 }

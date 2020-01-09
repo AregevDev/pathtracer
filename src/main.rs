@@ -1,15 +1,15 @@
+//TODO: Add more comments
+
 use std::fmt::Write;
-use std::fs;
 
 use crate::camera::Camera;
 use crate::hit::Hit;
 use crate::hit_list::HitList;
-use crate::material::{Lambertian, Metal, Dielectric};
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vector::Vector3;
 use rand::Rng;
-use std::time::Instant;
 
 mod camera;
 mod hit;
@@ -19,12 +19,13 @@ mod ray;
 mod sphere;
 mod vector;
 
+// Generate a random point in the unit sphere
 fn random_in_unit_sphere() -> Vector3 {
     let mut rnd = rand::thread_rng();
     let mut p;
 
     loop {
-        p = Vector3::new(rnd.gen::<f32>(), rnd.gen::<f32>(), rnd.gen::<f32>()) * 2.0
+        p = 2.0 * Vector3::new(rnd.gen::<f32>(), rnd.gen::<f32>(), rnd.gen::<f32>())
             - Vector3::new(1.0, 1.0, 1.0);
         if p.squared_length() < 1.0 {
             break;
@@ -34,97 +35,96 @@ fn random_in_unit_sphere() -> Vector3 {
     p
 }
 
-fn compute_color(r: Ray, world: &HitList, depth: i32) -> Vector3 {
-    let (hit, record) = world.hit(r, 0.001, std::f32::MAX);
-
-    if hit {
-        let (scattered, attenuation, ray_out) = record.material.borrow().scatter(r, &record);
-        if depth < 50 && scattered {
-            return attenuation * compute_color(ray_out, &world, depth + 1) * 0.5;
+// Compute the ray's color
+fn color(ray: Ray, world: &HitList, depth: i32) -> Vector3 {
+    if let Some(record) = world.hit(ray, 0.001, std::f32::MAX) {
+        if let Some(scattered) = record.material.scatter(ray, &record) {
+            if depth < 50 {
+                return scattered.color * color(scattered.ray.unwrap(), world, depth + 1);
+            }
         }
     }
 
-    let unit_dir = r.direction.normalize();
-    let t = 0.5 * (unit_dir.y + 1.0);
-    Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t
+    let nd = ray.direction.normalize();
+    let t = 0.5 * (nd.y + 1.0);
+    Vector3::new(1.0, 1.0, 1.0).lerp(Vector3::new(0.5, 0.7, 1.0), t)
 }
 
 fn main() {
+    // Random number generator
+    let mut rand = rand::thread_rng();
 
-    // Random generator
-    let mut rnd = rand::thread_rng();
+    // Define image dimensions
+    let image_width = 512;
+    let image_height = 512;
+    let samples = 100;
 
-    // Set image width and height
-    let width = 512;
-    let height = 512;
-    let samples = 1;
+    // Allocate a string to hold the image data
+    let mut out = String::with_capacity(image_width * image_height * samples);
 
-    // Create a string to hold the PPM data
-    let mut img_data = String::with_capacity(width * height * samples);
+    // Write the PPM file headers
+    writeln!(out, "P3\n{} {}\n255", image_width, image_height).unwrap();
 
     // Define camera
-    let cam = Camera::new();
+    let camera = Camera::new();
 
-    // Define world
+    // Define world of spheres
     let mut hl = HitList::new();
-    hl.add(Sphere::new(
-        Vector3::new(0.0, 0.0, -1.0),
-        0.5,
-        Lambertian::new(Vector3::new(0.1, 0.2, 0.5)),
-    ));
     hl.add(Sphere::new(
         Vector3::new(0.0, -100.5, -1.0),
         100.0,
-        Lambertian::new(Vector3::new(0.8, 0.8, 0.0)),
+        Material::lambertian(Vector3::new(0.5, 0.5, 0.5)),
+    ));
+    hl.add(Sphere::new(
+        Vector3::new(0.0, 0.0, -1.0),
+        0.5,
+        Material::lambertian(Vector3::new(1.0, 1.0, 1.0)),
     ));
     hl.add(Sphere::new(
         Vector3::new(1.0, 0.0, -1.0),
         0.5,
-        Metal::new(Vector3::new(0.8, 0.6, 0.2), 0.0),
+        Material::metal(Vector3::new(0.0, 1.0, 1.0), 0.0),
     ));
     hl.add(Sphere::new(
         Vector3::new(-1.0, 0.0, -1.0),
         0.5,
-        Dielectric::new(1.5),
+        Material::lambertian(Vector3::new(1.0, 0.0, 1.0)),
+    ));
+    hl.add(Sphere::new(
+        Vector3::new(-0.5, 0.5, -2.5),
+        1.5,
+        Material::metal(Vector3::new(1.0, 0.467, 0.0), 0.1),
     ));
 
-    // Start counting
-    let inst = Instant::now();
-
-    // Write the file headers
-    write!(&mut img_data, "P3\n{} {}\n255\n", width, height).unwrap();
-
-    // Write pixels
-    for j in (0..=height).rev() {
-        for i in 0..width {
+    // Write pixel data
+    for j in (0..image_height).rev() {
+        for i in 0..image_width {
             let mut col = Vector3::new(0.0, 0.0, 0.0);
-            for _ in 0..samples {
-                // Normalized UV coordinates
-                let u = (i as f32 + rnd.gen::<f32>()) / width as f32;
-                let v = (j as f32 + rnd.gen::<f32>()) / height as f32;
 
-                let r = cam.get_ray(u, v);
-                col += compute_color(r, &hl, 0);
+            // Average the pixel colors from each sample
+            for _ in 0..samples {
+                // Normalize colors from 0.0 to 1.0
+                let u = (i as f32 + rand.gen::<f32>()) / image_width as f32;
+                let v = (j as f32 + rand.gen::<f32>()) / image_height as f32;
+
+                let ray = camera.get_ray(u, v);
+                col += color(ray, &hl, 0);
             }
 
+            // Average
             col /= samples as f32;
-            col = col.sqrt();
+            col = Vector3::new(col.x.sqrt(), col.y.sqrt(), col.z.sqrt());
 
+            // Convert from normalized to RGB
             let ir = (255.0 * col.x) as i32;
             let ig = (255.0 * col.y) as i32;
             let ib = (255.0 * col.z) as i32;
 
-            write!(&mut img_data, "{} {} {}\n", ir, ig, ib).unwrap();
+            // Write RGB set into the file
+            writeln!(out, "{} {} {}", ir, ig, ib).unwrap();
         }
     }
 
-    // Write the entire image data to the file
-    fs::write("test.ppm", img_data).unwrap();
-
-    // Measure how long it rendered
-    let duration = inst.elapsed().as_secs_f32();
-    println!(
-        "Image written successfully!\nRendered in {:.1} minutes",
-        duration / 60.0
-    );
+    // Finally, write the entire chunk of pixel data to the file at one time
+    std::fs::write("test.ppm", out).expect("Failed to write output image");
 }
