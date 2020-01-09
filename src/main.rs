@@ -19,13 +19,17 @@ mod ray;
 mod sphere;
 mod vector;
 
+fn random_double() -> f64 {
+    let mut rnd = rand::thread_rng();
+    rnd.gen::<f64>()
+}
+
 // Generate a random point in the unit sphere
 fn random_in_unit_sphere() -> Vector3 {
-    let mut rnd = rand::thread_rng();
     let mut p;
 
     loop {
-        p = 2.0 * Vector3::new(rnd.gen::<f32>(), rnd.gen::<f32>(), rnd.gen::<f32>())
+        p = 2.0 * Vector3::new(random_double() as f32, random_double() as f32, random_double() as f32)
             - Vector3::new(1.0, 1.0, 1.0);
         if p.squared_length() < 1.0 {
             break;
@@ -51,9 +55,6 @@ fn color(ray: Ray, world: &HitList, depth: i32) -> Vector3 {
 }
 
 fn main() {
-    // Random number generator
-    let mut rand = rand::thread_rng();
-
     // Define image dimensions
     let image_width = 512;
     let image_height = 512;
@@ -73,17 +74,17 @@ fn main() {
     hl.add(Sphere::new(
         Vector3::new(0.0, -100.5, -1.0),
         100.0,
-        Material::lambertian(Vector3::new(0.5, 0.5, 0.5)),
+        Material::lambertian(Vector3::new(0.1, 0.8, 0.2)),
     ));
     hl.add(Sphere::new(
         Vector3::new(0.0, 0.0, -1.0),
         0.5,
-        Material::lambertian(Vector3::new(1.0, 1.0, 1.0)),
+        Material::lambertian(Vector3::new(0.1, 0.1, 0.1)),
     ));
     hl.add(Sphere::new(
         Vector3::new(1.0, 0.0, -1.0),
         0.5,
-        Material::metal(Vector3::new(0.0, 1.0, 1.0), 0.3),
+        Material::metal(Vector3::new(0.0, 1.0, 1.0), 0.0),
     ));
     hl.add(Sphere::new(
         Vector3::new(-1.0, 0.0, -1.0),
@@ -104,8 +105,8 @@ fn main() {
             // Average the pixel colors from each sample
             for _ in 0..samples {
                 // Normalize colors from 0.0 to 1.0
-                let u = (i as f32 + rand.gen::<f32>()) / image_width as f32;
-                let v = (j as f32 + rand.gen::<f32>()) / image_height as f32;
+                let u = (i as f32 + random_double() as f32) / image_width as f32;
+                let v = (j as f32 + random_double() as f32) / image_height as f32;
 
                 let ray = camera.get_ray(u, v);
                 col += color(ray, &hl, 0);
