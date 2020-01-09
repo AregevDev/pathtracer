@@ -65,17 +65,17 @@ fn main() {
     let image_height = 512;
     let samples = 100;
 
-    // Total rays to shoot
-    let total = image_width * image_height * samples;
+    // Total pixels
+    let total = image_width * image_height;
 
     // Output filename
     let filename = "test.ppm";
 
     // Allocate a string to hold the image data
-    let mut out = String::with_capacity(image_width * image_height);
+    let mut out = String::with_capacity(total);
 
     // Create progress bar
-    let prog = ProgressBar::new(total as u64);
+    let prog = ProgressBar::new((total / 64) as u64);
     prog.set_style(
         ProgressStyle::default_bar()
             .template("[{elapsed_precise}] [{bar:40.cyan/blue}] {percent}%/100% ({eta})")
@@ -147,8 +147,10 @@ fn main() {
 
             // Write RGB set into the file
             writeln!(out, "{} {} {}", ir, ig, ib).unwrap();
+        }
 
-            // Update progress bar
+        // Update progress bar
+        if (image_width * image_height) % 64 == 0 {
             prog.inc(1);
         }
     }
