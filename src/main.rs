@@ -89,12 +89,17 @@ fn main() {
     hl.add(Sphere::new(
         Vector3::new(-1.0, 0.0, -1.0),
         0.5,
-        Material::lambertian(Vector3::new(1.0, 0.0, 1.0)),
+        Material::metal(Vector3::new(1.0, 0.0, 1.0), 0.2),
     ));
     hl.add(Sphere::new(
-        Vector3::new(-0.5, 0.5, -2.5),
+        Vector3::new(-1.5, 0.5, -2.5),
         1.5,
         Material::lambertian(Vector3::new(1.0, 0.467, 0.0)),
+    ));
+    hl.add(Sphere::new(
+        Vector3::new(1.5, 0.5, -2.5),
+        1.5,
+        Material::lambertian(Vector3::new(0.702, 0.78, 0.471)),
     ));
 
     // Write pixel data
