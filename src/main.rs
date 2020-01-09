@@ -9,6 +9,7 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vector::Vector3;
+use indicatif::{ProgressBar, ProgressStyle};
 use rand::Rng;
 
 mod camera;
@@ -29,8 +30,12 @@ fn random_in_unit_sphere() -> Vector3 {
     let mut p;
 
     loop {
-        p = 2.0 * Vector3::new(random_double() as f32, random_double() as f32, random_double() as f32)
-            - Vector3::new(1.0, 1.0, 1.0);
+        p =
+            2.0 * Vector3::new(
+                random_double() as f32,
+                random_double() as f32,
+                random_double() as f32,
+            ) - Vector3::new(1.0, 1.0, 1.0);
         if p.squared_length() < 1.0 {
             break;
         }
@@ -60,8 +65,22 @@ fn main() {
     let image_height = 512;
     let samples = 100;
 
+    // Total rays to shoot
+    let total = image_width * image_height * samples;
+
+    // Output filename
+    let filename = "test.ppm";
+
     // Allocate a string to hold the image data
-    let mut out = String::with_capacity(image_width * image_height * samples);
+    let mut out = String::with_capacity(image_width * image_height);
+
+    // Create progress bar
+    let prog = ProgressBar::new(total as u64);
+    prog.set_style(
+        ProgressStyle::default_bar()
+            .template("[{elapsed_precise}] [{bar:40.cyan/blue}] {percent}%/100% ({eta})")
+            .progress_chars("#>-"),
+    );
 
     // Write the PPM file headers
     writeln!(out, "P3\n{} {}\n255", image_width, image_height).unwrap();
@@ -128,8 +147,14 @@ fn main() {
 
             // Write RGB set into the file
             writeln!(out, "{} {} {}", ir, ig, ib).unwrap();
+
+            // Update progress bar
+            prog.inc(1);
         }
     }
+
+    // Finish the progress bar
+    prog.finish_with_message(format!("Rendered to {}", filename).as_str());
 
     // Finally, write the entire chunk of pixel data to the file at one time
     std::fs::write("test.ppm", out).expect("Failed to write output image");
