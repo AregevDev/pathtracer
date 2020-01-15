@@ -1,35 +1,27 @@
+use crate::hit::{Hit, Sphere};
 use crate::ray::Ray;
+use crate::record::HitRecord;
 use crate::vector::Vector3;
+use crate::world::World;
 use std::fmt::Write;
 use std::fs;
-use crate::record::{HitRecord, World};
-use crate::hit::{Hit, Sphere};
 
 mod hit;
 mod ray;
 mod record;
 mod vector;
-
-// Ray-Sphere intersection, return hit point, -1 if not
-fn hit_sphere(center: Vector3, radius: f32, ray_in: Ray) -> f32 {
-    let oc = ray_in.origin - center;
-    let a = ray_in.direction.dot(ray_in.direction);
-    let b = oc.dot(ray_in.direction) * 2.0;
-    let c = oc.dot(oc) - radius * radius;
-
-    let discriminant = b * b - 4.0 * a * c;
-    if discriminant < 0.0 {
-        return -1.0;
-    }
-
-    (-b - discriminant.sqrt()) / (2.0 * a)
-}
+mod world;
 
 // Compute the final color
 fn color(ray: Ray, world: &World) -> Vector3 {
     let mut record = HitRecord::default();
-    if world.hit(ray, 0.0, std::f32::MAX, &mut record) { // Check for intersection
-        return Vector3::new(record.normal.x + 1.0, record.normal.y + 1.0, record.normal.z + 1.0) * 0.5; // Shade with normals from the hit record
+    if world.hit(ray, 0.0, std::f32::MAX, &mut record) {
+        // Check for intersection
+        return Vector3::new(
+            record.normal.x + 1.0,
+            record.normal.y + 1.0,
+            record.normal.z + 1.0,
+        ) * 0.5; // Shade with normals from the hit record
     }
 
     let dir = ray.direction.normalize(); // Normalize ray direction

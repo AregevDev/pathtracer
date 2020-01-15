@@ -34,7 +34,7 @@ impl Hit for Sphere {
                 return true;
             }
 
-            let mut temp = (-b + discriminant.sqrt()) / a;
+            temp = (-b + discriminant.sqrt()) / a;
             if temp < t_max && temp > t_min {
                 record.t = temp;
                 record.p = ray.point_at_parameter(record.t);
