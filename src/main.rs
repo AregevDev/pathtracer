@@ -6,12 +6,28 @@ use std::fs;
 mod ray;
 mod vector;
 
+// Ray-Sphere intersection
+fn hit_sphere(center: Vector3, radius: f32, ray_in: Ray) -> bool {
+    let oc = ray_in.origin - center;
+    let a = ray_in.direction.dot(ray_in.direction);
+    let b = oc.dot(ray_in.direction) * 2.0;
+    let c = oc.dot(oc) - radius * radius;
+
+    let discriminant = b * b - 4.0 * a * c;
+
+    discriminant > 0.0
+}
+
 // Compute the final color
 fn color(ray: Ray) -> Vector3 {
-    let dir = ray.direction.normalize();
-    let t = 0.5 * (dir.y + 1.0);
+    if hit_sphere(Vector3::new(0.0, 0.0, 1.0), 0.5, ray) {
+        return Vector3::unit_x();
+    }
 
-    Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t
+    let dir = ray.direction.normalize(); // Normalize ray direction
+    let t = 0.5 * (dir.y + 1.0); // Place t between -1 and 1
+
+    Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t // Interpolate
 }
 
 fn main() {
