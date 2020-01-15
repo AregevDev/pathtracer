@@ -1,3 +1,4 @@
+use crate::camera::Camera;
 use crate::hit::{Hit, Sphere};
 use crate::ray::Ray;
 use crate::record::HitRecord;
@@ -5,8 +6,11 @@ use crate::vector::Vector3;
 use crate::world::World;
 use std::fmt::Write;
 use std::fs;
+use crate::random::random_float;
 
+mod camera;
 mod hit;
+mod random;
 mod ray;
 mod record;
 mod vector;
@@ -35,12 +39,15 @@ fn main() {
     let filename = "test.ppm";
     let nx = 500;
     let ny = 500;
+    let ns = 100;
 
     // Camera vectors
     let lower_left_corner = Vector3::new(-2.0, -2.0, -1.0);
     let horizontal = Vector3::new(4.0, 0.0, 0.0);
     let vertical = Vector3::new(0.0, 4.0, 0.0);
     let origin = Vector3::new(0.0, 0.0, 0.0);
+
+    let camera = Camera::new(lower_left_corner, horizontal, vertical, origin);
 
     // World
     let mut world = World::new();
@@ -57,15 +64,24 @@ fn main() {
     // Render left to right, top to bottom
     for j in (0..ny).rev() {
         for i in 0..nx {
-            // Normalized coordinates
-            let u = i as f32 / nx as f32;
-            let v = j as f32 / ny as f32;
+            // Average color value
+            let mut col = Vector3::default();
 
-            // Shoot a ray to the pixel
-            let ray = Ray::new(origin, lower_left_corner + horizontal * u + vertical * v);
+            // shoot ns rays for each sample and average the result
+            for s in 0..ns {
+                // Normalized coordinates
+                let u = (i as f32 + random_float())  / nx as f32;
+                let v = (j as f32 + random_float()) / ny as f32;
 
-            // Compute color
-            let col = color(ray, &world);
+                let ray = camera.ray(u, v);
+
+                // Compute color
+                let c = color(ray, &world);
+                col += c;
+            }
+
+            // Divide by sample count
+            col /= ns as f32;
 
             // Convert to RGB
             let ir = (255.99 * col.x) as i32;

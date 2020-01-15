@@ -1,6 +1,6 @@
 use crate::hit::Hit;
-use crate::record::HitRecord;
 use crate::ray::Ray;
+use crate::record::HitRecord;
 
 pub struct World {
     hits: Vec<Box<dyn Hit>>,
