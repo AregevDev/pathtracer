@@ -1,5 +1,6 @@
 use crate::camera::Camera;
-use crate::hit::{Hit, HitRecord};
+use crate::hit::Hit;
+use crate::material::{Dielectric, Lambertian, Metal};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vector::Vector3;
@@ -7,15 +8,14 @@ use crate::world::World;
 use std::fmt::Write;
 use std::fs;
 use std::rc::Rc;
-use crate::material::{Lambertian, Metal};
 
 mod camera;
 mod hit;
+mod material;
 mod ray;
 mod sphere;
 mod vector;
 mod world;
-mod material;
 
 // Generate a random float
 pub fn random_float() -> f32 {
@@ -59,7 +59,7 @@ fn main() {
     let filename = "test.ppm";
     let nx = 500;
     let ny = 500;
-    let ns = 10;
+    let ns = 100;
 
     // Camera vectors
     let lower_left_corner = Vector3::new(-2.0, -2.0, -1.0);
@@ -71,10 +71,31 @@ fn main() {
 
     // World
     let mut world = World::new();
-    world.add(Sphere::new(Vector3::new(0.0, 0.0, -1.0), 0.5, Rc::new(Lambertian::new(Vector3::new(0.1, 0.2, 0.5)))));
-    world.add(Sphere::new(Vector3::new(0.0, -100.5, -1.0), 100.0, Rc::new(Lambertian::new(Vector3::new(0.8, 0.8, 0.0)))));
-    world.add(Sphere::new(Vector3::new(1.0, 0.0, -1.0), 0.5, Rc::new(Metal::new(Vector3::new(0.8, 0.6, 0.2), 1.0))));
-    world.add(Sphere::new(Vector3::new(-1.0, 0.0, -1.0), 0.5, Rc::new(Metal::new(Vector3::new(0.8, 0.8, 0.8), 0.3))));
+    world.add(Sphere::new(
+        Vector3::new(0.0, 0.0, -1.0),
+        0.5,
+        Rc::new(Lambertian::new(Vector3::new(0.1, 0.2, 0.5))),
+    ));
+    world.add(Sphere::new(
+        Vector3::new(0.0, -100.5, -1.0),
+        100.0,
+        Rc::new(Lambertian::new(Vector3::new(0.8, 0.8, 0.0))),
+    ));
+    world.add(Sphere::new(
+        Vector3::new(1.0, 0.0, -1.0),
+        0.5,
+        Rc::new(Metal::new(Vector3::new(0.8, 0.6, 0.2), 0.3)),
+    ));
+    world.add(Sphere::new(
+        Vector3::new(-1.0, 0.0, -1.0),
+        0.5,
+        Rc::new(Dielectric::new(1.5)),
+    ));
+    world.add(Sphere::new(
+        Vector3::new(-1.0, 0.0, -1.0),
+        -0.45,
+        Rc::new(Dielectric::new(1.5)),
+    ));
 
     // Output buffer
     let mut out = String::with_capacity(nx * ny);
@@ -90,7 +111,7 @@ fn main() {
             let mut col = Vector3::default();
 
             // shoot ns rays for each sample and average the result
-            for s in 0..ns {
+            for _ in 0..ns {
                 // Normalized coordinates
                 let u = (i as f32 + random_float()) / nx as f32;
                 let v = (j as f32 + random_float()) / ny as f32;

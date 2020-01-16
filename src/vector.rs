@@ -1,6 +1,6 @@
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, PartialOrd)]
 pub struct Vector3 {
     pub x: f32,
     pub y: f32,
@@ -54,6 +54,18 @@ impl Vector3 {
 
     pub fn reflect(&self, other: Vector3) -> Vector3 {
         other - (other * 2.0 * self.dot(other))
+    }
+
+    pub fn refract(&self, other: Vector3, refractive_index: f32) -> Vector3 {
+        let unit = self.normalize();
+        let dot = unit.dot(other);
+
+        let discriminant = 1.0 - refractive_index * refractive_index * (1.0 - dot * dot);
+        return if discriminant > 0.0 {
+            unit * refractive_index - other * (refractive_index * dot + discriminant.sqrt())
+        } else {
+            Vector3::default()
+        };
     }
 }
 
@@ -174,5 +186,17 @@ impl DivAssign<f32> for Vector3 {
         self.x /= rhs;
         self.y /= rhs;
         self.z /= rhs;
+    }
+}
+
+impl Neg for Vector3 {
+    type Output = Vector3;
+
+    fn neg(self) -> Self::Output {
+        Vector3 {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
     }
 }
