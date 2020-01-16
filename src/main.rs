@@ -7,7 +7,7 @@ use crate::world::World;
 use std::fmt::Write;
 use std::fs;
 use std::rc::Rc;
-use crate::material::Lambertian;
+use crate::material::{Lambertian, Metal};
 
 mod camera;
 mod hit;
@@ -47,6 +47,7 @@ fn color(ray: Ray, world: &World, depth: i32) -> Vector3 {
         }
     }
 
+    // Background gradient
     let dir = ray.direction.normalize(); // Normalize ray direction
     let t = 0.5 * (dir.y + 1.0); // Place t between -1 and 1
 
@@ -71,7 +72,9 @@ fn main() {
     // World
     let mut world = World::new();
     world.add(Sphere::new(Vector3::new(0.0, 0.0, -1.0), 0.5, Rc::new(Lambertian::new(Vector3::new(0.1, 0.2, 0.5)))));
-    world.add(Sphere::new(Vector3::new(1.0, -100.5, -1.0), 100.0, Rc::new(Lambertian::new(Vector3::new(0.8, 0.8, 0.0)))));
+    world.add(Sphere::new(Vector3::new(0.0, -100.5, -1.0), 100.0, Rc::new(Lambertian::new(Vector3::new(0.8, 0.8, 0.0)))));
+    world.add(Sphere::new(Vector3::new(1.0, 0.0, -1.0), 0.5, Rc::new(Metal::new(Vector3::new(0.8, 0.6, 0.2), 1.0))));
+    world.add(Sphere::new(Vector3::new(-1.0, 0.0, -1.0), 0.5, Rc::new(Metal::new(Vector3::new(0.8, 0.8, 0.8), 0.3))));
 
     // Output buffer
     let mut out = String::with_capacity(nx * ny);
