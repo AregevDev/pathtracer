@@ -6,7 +6,7 @@ use crate::vector::Vector3;
 use crate::world::World;
 use std::fmt::Write;
 use std::fs;
-use crate::random::random_float;
+use crate::random::{random_float, random_in_unit_sphere};
 
 mod camera;
 mod hit;
@@ -19,13 +19,10 @@ mod world;
 // Compute the final color
 fn color(ray: Ray, world: &World) -> Vector3 {
     let mut record = HitRecord::default();
-    if world.hit(ray, 0.0, std::f32::MAX, &mut record) {
+    if world.hit(ray, 0.001, std::f32::MAX, &mut record) {
         // Check for intersection
-        return Vector3::new(
-            record.normal.x + 1.0,
-            record.normal.y + 1.0,
-            record.normal.z + 1.0,
-        ) * 0.5; // Shade with normals from the hit record
+        let target = record.p + record.normal + random_in_unit_sphere();
+        return color(Ray::new(record.p, target - record.p), &world) * 0.5;
     }
 
     let dir = ray.direction.normalize(); // Normalize ray direction
@@ -39,7 +36,7 @@ fn main() {
     let filename = "test.ppm";
     let nx = 500;
     let ny = 500;
-    let ns = 100;
+    let ns = 1;
 
     // Camera vectors
     let lower_left_corner = Vector3::new(-2.0, -2.0, -1.0);
@@ -82,6 +79,9 @@ fn main() {
 
             // Divide by sample count
             col /= ns as f32;
+
+            // Apply Gamma correction
+            col = Vector3::new(col.x.sqrt(), col.y.sqrt(), col.z.sqrt());
 
             // Convert to RGB
             let ir = (255.99 * col.x) as i32;
