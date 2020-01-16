@@ -1,20 +1,37 @@
 use crate::camera::Camera;
-use crate::hit::{Hit, Sphere};
+use crate::hit::{Hit, HitRecord};
 use crate::ray::Ray;
-use crate::record::HitRecord;
+use crate::sphere::Sphere;
 use crate::vector::Vector3;
 use crate::world::World;
 use std::fmt::Write;
 use std::fs;
-use crate::random::{random_float, random_in_unit_sphere};
 
 mod camera;
 mod hit;
-mod random;
 mod ray;
-mod record;
+mod sphere;
 mod vector;
 mod world;
+
+// Generate a random float
+pub fn random_float() -> f32 {
+    rand::random::<f32>()
+}
+
+// Generate a random point in 3D space, discard if outside of the unit sphere
+pub fn random_in_unit_sphere() -> Vector3 {
+    let mut p;
+
+    loop {
+        p = Vector3::new(random_float(), random_float(), random_float()) * 2.0
+            - Vector3::new(1.0, 1.0, 1.0);
+
+        if p.squared_length() >= 1.0 {
+            return p;
+        }
+    }
+}
 
 // Compute the final color
 fn color(ray: Ray, world: &World) -> Vector3 {
@@ -36,7 +53,7 @@ fn main() {
     let filename = "test.ppm";
     let nx = 500;
     let ny = 500;
-    let ns = 1;
+    let ns = 10;
 
     // Camera vectors
     let lower_left_corner = Vector3::new(-2.0, -2.0, -1.0);
@@ -67,7 +84,7 @@ fn main() {
             // shoot ns rays for each sample and average the result
             for s in 0..ns {
                 // Normalized coordinates
-                let u = (i as f32 + random_float())  / nx as f32;
+                let u = (i as f32 + random_float()) / nx as f32;
                 let v = (j as f32 + random_float()) / ny as f32;
 
                 let ray = camera.ray(u, v);
