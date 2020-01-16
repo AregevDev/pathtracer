@@ -19,19 +19,17 @@ impl World {
 }
 
 impl Hit for World {
-    fn hit(&self, ray: Ray, t_min: f32, t_max: f32, record: &mut HitRecord) -> bool {
-        let mut temp_record = HitRecord::default();
-        let mut hit_anything = false;
+    fn hit(&self, ray: Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        let mut result: Option<HitRecord> = None;
         let mut closest = t_max;
 
-        for i in 0..self.hits.len() {
-            if self.hits[i].hit(ray, t_min, closest, &mut temp_record) {
-                hit_anything = true;
-                closest = temp_record.t;
-                *record = temp_record;
+        for h in self.hits.iter() {
+            if let Some(record) = h.hit(ray, t_min, closest) {
+                closest = record.t;
+                result = Some(record)
             }
         }
 
-        hit_anything
+        result
     }
 }

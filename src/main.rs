@@ -6,6 +6,8 @@ use crate::vector::Vector3;
 use crate::world::World;
 use std::fmt::Write;
 use std::fs;
+use std::rc::Rc;
+use crate::material::Lambertian;
 
 mod camera;
 mod hit;
@@ -13,6 +15,7 @@ mod ray;
 mod sphere;
 mod vector;
 mod world;
+mod material;
 
 // Generate a random float
 pub fn random_float() -> f32 {
@@ -34,12 +37,14 @@ pub fn random_in_unit_sphere() -> Vector3 {
 }
 
 // Compute the final color
-fn color(ray: Ray, world: &World) -> Vector3 {
-    let mut record = HitRecord::default();
-    if world.hit(ray, 0.001, std::f32::MAX, &mut record) {
-        // Check for intersection
-        let target = record.p + record.normal + random_in_unit_sphere();
-        return color(Ray::new(record.p, target - record.p), &world) * 0.5;
+fn color(ray: Ray, world: &World, depth: i32) -> Vector3 {
+    if let Some(record) = world.hit(ray, 0.001, std::f32::MAX) {
+        // Intersected
+        if depth < 50 {
+            if let Some((scattered, attenuation)) = record.material.scatter(ray, &record) {
+                return attenuation * color(scattered, world, depth + 1);
+            }
+        }
     }
 
     let dir = ray.direction.normalize(); // Normalize ray direction
@@ -65,8 +70,8 @@ fn main() {
 
     // World
     let mut world = World::new();
-    world.add(Sphere::new(Vector3::new(0.0, 0.0, -1.0), 0.5));
-    world.add(Sphere::new(Vector3::new(1.0, -100.5, -1.0), 100.0));
+    world.add(Sphere::new(Vector3::new(0.0, 0.0, -1.0), 0.5, Rc::new(Lambertian::new(Vector3::new(0.1, 0.2, 0.5)))));
+    world.add(Sphere::new(Vector3::new(1.0, -100.5, -1.0), 100.0, Rc::new(Lambertian::new(Vector3::new(0.8, 0.8, 0.0)))));
 
     // Output buffer
     let mut out = String::with_capacity(nx * ny);
@@ -90,7 +95,7 @@ fn main() {
                 let ray = camera.ray(u, v);
 
                 // Compute color
-                let c = color(ray, &world);
+                let c = color(ray, &world, 0);
                 col += c;
             }
 

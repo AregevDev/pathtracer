@@ -51,6 +51,10 @@ impl Vector3 {
             z: self.x * other.y - self.y * other.x,
         }
     }
+
+    pub fn reflect(&self, other: Vector3) -> Vector3 {
+        other - (other * 2.0 * self.dot(other))
+    }
 }
 
 impl Add<Vector3> for Vector3 {
