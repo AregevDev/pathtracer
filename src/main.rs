@@ -36,6 +36,19 @@ pub fn random_in_unit_sphere() -> Vector3 {
     }
 }
 
+// Generate a random point in 2D space, discard if outside of the unit circle
+pub fn random_in_unit_disk() -> Vector3 {
+    let mut p;
+
+    loop {
+        p = Vector3::new(random_float(), random_float(), 0.0) * 2.0 - Vector3::new(1.0, 1.0, 0.0);
+
+        if p.dot(p) < 1.0 {
+            return p;
+        }
+    }
+}
+
 // Compute the final color
 fn color(ray: Ray, world: &World, depth: i32) -> Vector3 {
     if let Some(record) = world.hit(ray, 0.0001, std::f32::MAX) {
@@ -64,11 +77,22 @@ fn main() {
     let ns = 100;
 
     // Camera vectors
-    let eye = Vector3::new(0.0, 0.0, -6.0);
+    let eye = Vector3::new(4.0, 4.0, 4.0);
     let center = Vector3::new(0.0, 0.0, 0.0);
     let up = Vector3::unit_y();
 
-    let camera = Camera::new(eye, center, up, 45.0, nx as f32 / ny as f32);
+    let focus = (eye - center).length();
+    let aperture = 1.5;
+
+    let camera = Camera::new(
+        eye,
+        center,
+        up,
+        30.0,
+        nx as f32 / ny as f32,
+        aperture,
+        focus,
+    );
 
     // World
     let mut world = World::new();
