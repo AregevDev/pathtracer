@@ -4,8 +4,8 @@ use crate::vector::Vector3;
 use crate::{random_float, random_in_unit_sphere};
 
 pub fn schlick(cosine: f32, refractive_index: f32) -> f32 {
-    let mut r0 = (1.0 - refractive_index) / (1.0 + refractive_index);
-    r0 = r0 * r0;
+    let r0 = (1.0 - refractive_index) / (1.0 + refractive_index);
+    let r0 = r0 * r0;
 
     r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
 }
@@ -94,7 +94,7 @@ impl Material for Dielectric {
         let refracted = ray_in.direction.refract(outward_normal, ni_over_nt);
         let attenuation = Vector3::new(1.0, 1.0, 1.0);
 
-        if ray_in.direction.refract(outward_normal, ni_over_nt) != Vector3::default() {
+        if refracted != Vector3::default() {
             reflect_prob = schlick(cosine, self.refractive_index);
         } else {
             reflect_prob = 1.0;

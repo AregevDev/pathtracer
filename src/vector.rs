@@ -53,7 +53,7 @@ impl Vector3 {
     }
 
     pub fn reflect(&self, other: Vector3) -> Vector3 {
-        other - (other * 2.0 * self.dot(other))
+        *self - (other * 2.0 * self.dot(other))
     }
 
     pub fn refract(&self, other: Vector3, refractive_index: f32) -> Vector3 {
@@ -62,7 +62,7 @@ impl Vector3 {
 
         let discriminant = 1.0 - refractive_index * refractive_index * (1.0 - dot * dot);
         return if discriminant > 0.0 {
-            unit * refractive_index - other * (refractive_index * dot + discriminant.sqrt())
+            (unit - other * dot) * refractive_index - other * discriminant.sqrt()
         } else {
             Vector3::default()
         };

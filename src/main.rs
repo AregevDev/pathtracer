@@ -38,12 +38,13 @@ pub fn random_in_unit_sphere() -> Vector3 {
 
 // Compute the final color
 fn color(ray: Ray, world: &World, depth: i32) -> Vector3 {
-    if let Some(record) = world.hit(ray, 0.001, std::f32::MAX) {
+    if let Some(record) = world.hit(ray, 0.0001, std::f32::MAX) {
         // Intersected
         if depth < 50 {
             if let Some((scattered, attenuation)) = record.material.scatter(ray, &record) {
                 return attenuation * color(scattered, world, depth + 1);
             }
+            return Vector3::default();
         }
     }
 
@@ -51,7 +52,8 @@ fn color(ray: Ray, world: &World, depth: i32) -> Vector3 {
     let dir = ray.direction.normalize(); // Normalize ray direction
     let t = 0.5 * (dir.y + 1.0); // Place t between -1 and 1
 
-    Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t // Interpolate
+    return Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t;
+    // Interpolate
 }
 
 fn main() {
@@ -84,7 +86,7 @@ fn main() {
     world.add(Sphere::new(
         Vector3::new(1.0, 0.0, -1.0),
         0.5,
-        Rc::new(Metal::new(Vector3::new(0.8, 0.6, 0.2), 0.3)),
+        Rc::new(Metal::new(Vector3::new(0.8, 0.6, 0.2), 0.2)),
     ));
     world.add(Sphere::new(
         Vector3::new(-1.0, 0.0, -1.0),
