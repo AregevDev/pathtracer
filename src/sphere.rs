@@ -2,16 +2,16 @@ use crate::hit::{Hit, HitRecord};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vector::Vector3;
+use std::rc::Rc;
 
-#[derive(Debug, Clone)]
 pub struct Sphere {
-    pub center: Vector3,
-    pub radius: f32,
-    pub material: Material,
+    center: Vector3,
+    radius: f32,
+    material: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Vector3, radius: f32, material: Material) -> Self {
+    pub fn new(center: Vector3, radius: f32, material: Rc<dyn Material>) -> Self {
         Sphere {
             center,
             radius,
@@ -21,37 +21,33 @@ impl Sphere {
 }
 
 impl Hit for Sphere {
-    fn hit(&self, r: Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        let oc = r.origin - self.center;
-        let a = r.direction.dot(r.direction);
-        let b = oc.dot(r.direction);
-        let c = oc.dot(oc) - (self.radius * self.radius);
-        let discriminant = b * b - a * c;
+    fn hit(&self, ray: Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        let result: Option<HitRecord> = None;
 
+        let oc = ray.origin - self.center;
+        let a = ray.direction.dot(ray.direction);
+        let b = oc.dot(ray.direction);
+        let c = oc.dot(oc) - self.radius * self.radius;
+
+        let discriminant = b * b - a * c;
         if discriminant > 0.0 {
-            let mut t = (-b - discriminant.sqrt()) / a;
-            if t < t_max && t > t_min {
-                let p = r.point_at_parameter(t);
-                return Some(HitRecord {
-                    t,
-                    p,
-                    normal: (p - self.center) / self.radius,
-                    material: self.material,
-                });
+            let mut temp = (-b - discriminant.sqrt()) / a;
+            if temp < t_max && temp > t_min {
+                let p = ray.point_at_parameter(temp);
+                let normal = (p - self.center) / self.radius;
+                let record = HitRecord::new(temp, p, normal, self.material.clone());
+                return Some(record);
             }
 
-            t = (-b + discriminant.sqrt()) / a;
-            if t < t_max && t > t_min {
-                let p = r.point_at_parameter(t);
-                return Some(HitRecord {
-                    t,
-                    p,
-                    normal: (p - self.center) / self.radius,
-                    material: self.material,
-                });
+            temp = (-b + discriminant.sqrt()) / a;
+            if temp < t_max && temp > t_min {
+                let p = ray.point_at_parameter(temp);
+                let normal = (p - self.center) / self.radius;
+                let record = HitRecord::new(temp, p, normal, self.material.clone());
+                return Some(record);
             }
         }
 
-        None
+        result
     }
 }

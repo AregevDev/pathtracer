@@ -1,72 +1,111 @@
 use crate::hit::HitRecord;
-use crate::random_in_unit_sphere;
 use crate::ray::Ray;
 use crate::vector::Vector3;
-use std::fmt::Debug;
+use crate::{random_float, random_in_unit_sphere};
 
-#[derive(Debug, Default, Copy, Clone)]
-pub struct Scatter {
-    pub color: Vector3,
-    pub ray: Option<Ray>,
+pub fn schlick(cosine: f32, refractive_index: f32) -> f32 {
+    let mut r0 = (1.0 - refractive_index) / (1.0 + refractive_index);
+    r0 = r0 * r0;
+
+    r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
 }
 
-#[derive(Debug, Copy, Clone)]
-pub enum Material {
-    Lambertian { albedo: Vector3 },
-    Metal { albedo: Vector3, fuzz: f32 },
-    Dielectric { refractive_index: f32 },
+pub trait Material {
+    // Return an optional scattered ray and attenuation
+    fn scatter(&self, ray_in: Ray, record: &HitRecord) -> Option<(Ray, Vector3)>;
 }
 
-impl Material {
-    pub fn lambertian(albedo: Vector3) -> Self {
-        Material::Lambertian { albedo }
+pub struct Lambertian {
+    albedo: Vector3,
+}
+
+impl Lambertian {
+    pub fn new(albedo: Vector3) -> Self {
+        Lambertian { albedo }
     }
+}
 
-    pub fn metal(albedo: Vector3, fuzz: f32) -> Self {
-        Material::Metal { albedo, fuzz }
+impl Material for Lambertian {
+    fn scatter(&self, _ray_in: Ray, record: &HitRecord) -> Option<(Ray, Vector3)> {
+        let target = record.p + record.normal + random_in_unit_sphere();
+
+        Some((Ray::new(record.p, target - record.p), self.albedo))
     }
+}
 
-    pub fn dielectric(refractive_index: f32) -> Self {
-        Material::Dielectric { refractive_index }
-    }
+pub struct Metal {
+    albedo: Vector3,
+    fuzz: f32,
+}
 
-    pub fn scatter(&self, ray_in: Ray, record: &HitRecord) -> Option<Scatter> {
-        match *self {
-            Material::Lambertian { albedo } => {
-                let mut scattered = Scatter::default();
-                let target = record.p + record.normal + random_in_unit_sphere();
-
-                scattered.color = albedo;
-                scattered.ray = Some(Ray::new(record.p, target - record.p));
-
-                Some(scattered)
-            }
-            Material::Metal { albedo, fuzz } => {
-                let mut scattered = Scatter::default();
-                let reflected = ray_in.direction.normalize().reflect(record.normal);
-                let new_fuzz = fuzz.min(1.0);
-
-                scattered.color = albedo;
-                scattered.ray = Some(Ray::new(
-                    record.p,
-                    reflected + new_fuzz * random_in_unit_sphere(),
-                ));
-
-                if scattered.ray.unwrap().direction.dot(record.normal) > 0.0 {
-                    Some(scattered)
-                } else {
-                    None
-                }
-            }
-            _ => None,
+impl Metal {
+    pub fn new(albedo: Vector3, fuzz: f32) -> Self {
+        Metal {
+            albedo,
+            fuzz: fuzz.min(1.0),
         }
     }
 }
 
-impl Default for Material {
-    fn default() -> Self {
-        Material::Lambertian {
-            albedo: Vector3::default(),
+impl Material for Metal {
+    fn scatter(&self, ray_in: Ray, record: &HitRecord) -> Option<(Ray, Vector3)> {
+        let reflected = ray_in.direction.normalize().reflect(record.normal);
+        let scattered = Ray::new(record.p, reflected + random_in_unit_sphere() * self.fuzz);
+
+        return if scattered.direction.dot(record.normal) > 0.0 {
+            Some((scattered, self.albedo))
+        } else {
+            None
+        };
+    }
+}
+
+pub struct Dielectric {
+    refractive_index: f32,
+}
+
+impl Dielectric {
+    pub fn new(refractive_index: f32) -> Self {
+        Dielectric { refractive_index }
+    }
+}
+
+impl Material for Dielectric {
+    fn scatter(&self, ray_in: Ray, record: &HitRecord) -> Option<(Ray, Vector3)> {
+        let reflected = ray_in.direction.normalize().reflect(record.normal);
+        let scattered;
+        let outward_normal;
+        let ni_over_nt;
+
+        let reflect_prob;
+        let cosine;
+
+        if ray_in.direction.dot(record.normal) > 0.0 {
+            outward_normal = -record.normal;
+            ni_over_nt = self.refractive_index;
+            cosine = ray_in.direction.dot(record.normal) / ray_in.direction.length()
+                * self.refractive_index;
+        } else {
+            outward_normal = record.normal;
+            ni_over_nt = 1.0 / self.refractive_index;
+            cosine = -ray_in.direction.dot(record.normal) / ray_in.direction.length();
         }
+
+        let refracted = ray_in.direction.refract(outward_normal, ni_over_nt);
+        let attenuation = Vector3::new(1.0, 1.0, 1.0);
+
+        if ray_in.direction.refract(outward_normal, ni_over_nt) != Vector3::default() {
+            reflect_prob = schlick(cosine, self.refractive_index);
+        } else {
+            reflect_prob = 1.0;
+        }
+
+        if random_float() < reflect_prob {
+            scattered = Ray::new(record.p, reflected);
+        } else {
+            scattered = Ray::new(record.p, refracted);
+        }
+
+        Some((scattered, attenuation))
     }
 }
