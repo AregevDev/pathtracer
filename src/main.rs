@@ -2,7 +2,7 @@ use crate::camera::Camera;
 use crate::hit::Hit;
 use crate::material::{Dielectric, Lambertian, Metal};
 use crate::ray::Ray;
-use crate::scenes::{basic_scene, random_scene};
+use crate::scenes::{basic_scene, random_scene, colored_sphere_scene};
 use crate::vector::Vector3;
 use crate::world::World;
 use std::fmt::Write;
@@ -72,12 +72,12 @@ fn color(ray: Ray, world: &World, depth: i32) -> Vector3 {
 fn main() {
     // Output properties
     let filename = "test.ppm";
-    let nx = 1280;
-    let ny = 720;
+    let nx = 512;
+    let ny = 512;
     let ns = 100;
 
     // Scene
-    let scene = random_scene(nx, ny);
+    let scene = colored_sphere_scene(nx, ny);
 
     // Output buffer
     let mut out = String::with_capacity(nx * ny);
