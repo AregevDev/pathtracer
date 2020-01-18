@@ -1,4 +1,4 @@
-use crate::random_in_unit_disk;
+use crate::{random_in_unit_disk, random_float};
 use crate::ray::Ray;
 use crate::vector::Vector3;
 use std::f32::consts::PI;
@@ -13,6 +13,8 @@ pub struct Camera {
     u: Vector3,
     v: Vector3,
     lens_radius: f32,
+    time0: f32,
+    time1: f32,
 }
 
 impl Camera {
@@ -24,6 +26,8 @@ impl Camera {
         aspect: f32,
         aperture: f32,
         focus_dist: f32,
+        time0: f32,
+        time1: f32,
     ) -> Self {
         let theta = fov * PI / 180.0;
         let half_height = (theta / 2.0).tan();
@@ -44,16 +48,20 @@ impl Camera {
             u,
             v,
             lens_radius: aperture / 2.0,
+            time0,
+            time1,
         }
     }
 
     pub fn ray(&self, s: f32, t: f32) -> Ray {
         let rd = random_in_unit_disk() * self.lens_radius;
+        let time = self.time0 + (random_float() + self.time1 - self.time0);
         let offset = self.u * rd.x + self.v * rd.y;
 
-        Ray::new(
+        Ray::with_time(
             self.origin + offset,
             self.lower_left_corner + self.horizontal * s + self.vertical * t - self.origin - offset,
+            time,
         )
     }
 }

@@ -1,6 +1,6 @@
 use crate::hit::Hit;
 use crate::ray::Ray;
-use crate::scenes::basic_scene;
+use crate::scenes::{basic_scene, random_scene};
 use crate::vector::Vector3;
 use crate::world::World;
 use std::fmt::Write;
@@ -14,6 +14,7 @@ mod scenes;
 mod sphere;
 mod vector;
 mod world;
+mod moving_sphere;
 
 // Generate a random float
 pub fn random_float() -> f32 {
@@ -63,19 +64,19 @@ fn color(ray: Ray, world: &World, depth: i32) -> Vector3 {
     let dir = ray.direction.normalize(); // Normalize ray direction
     let t = 0.5 * (dir.y + 1.0); // Place t between -1 and 1
 
-    return Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t;
     // Interpolate
+    return Vector3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vector3::new(0.5, 0.7, 1.0) * t;
 }
 
 fn main() {
     // Output properties
     let filename = "test.ppm";
-    let nx = 512;
-    let ny = 512;
+    let nx = 1200;
+    let ny = 800;
     let ns = 100;
 
     // Scene
-    let scene = basic_scene(nx, ny);
+    let scene = random_scene(nx, ny);
 
     // Output buffer
     let mut out = String::with_capacity(nx * ny);

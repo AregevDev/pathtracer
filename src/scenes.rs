@@ -5,6 +5,7 @@ use crate::sphere::Sphere;
 use crate::vector::Vector3;
 use crate::world::World;
 use std::rc::Rc;
+use crate::moving_sphere::MovingSphere;
 
 pub fn basic_scene(width: usize, height: usize) -> World {
     let eye = Vector3::new(4.0, 4.0, 4.0);
@@ -22,6 +23,8 @@ pub fn basic_scene(width: usize, height: usize) -> World {
         width as f32 / height as f32,
         aperture,
         focus,
+        0.0,
+        1.0,
     );
 
     let mut world = World::new(camera);
@@ -55,11 +58,11 @@ pub fn basic_scene(width: usize, height: usize) -> World {
 }
 
 pub fn random_scene(width: usize, height: usize) -> World {
-    let eye = Vector3::new(0.0, 3.0, 3.0);
+    let eye = Vector3::new(13.0, 2.0, 3.0);
     let center = Vector3::new(0.0, 0.0, 0.0);
     let up = Vector3::unit_y();
 
-    let focus = (eye - center).length();
+    let focus = 10.0;
     let aperture = 0.1;
 
     let camera = Camera::new(
@@ -70,6 +73,8 @@ pub fn random_scene(width: usize, height: usize) -> World {
         width as f32 / height as f32,
         aperture,
         focus,
+        0.0,
+        1.0,
     );
 
     let mut world = World::new(camera);
@@ -90,8 +95,11 @@ pub fn random_scene(width: usize, height: usize) -> World {
 
             if (sp - Vector3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 if random_mat < 0.8 {
-                    world.add(Sphere::new(
+                    world.add(MovingSphere::new(
                         sp,
+                        sp + Vector3::new(0.0, 0.5 * random_float(), 0.0),
+                        0.0,
+                        1.0,
                         0.2,
                         Rc::new(Lambertian::new(Vector3::new(
                             random_float() * random_float(),
@@ -144,6 +152,8 @@ pub fn colored_sphere_scene(width: usize, height: usize) -> World {
         width as f32 / height as f32,
         aperture,
         focus,
+        0.0,
+        1.0,
     );
 
     let mut world = World::new(camera);
