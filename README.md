@@ -1,5 +1,5 @@
 # pathtracer
-This is a generic path tracer modeled by Peter Shirley's "Ray-Tracing in a Weekend" [book](https://raytracing.github.io/books/RayTracingInOneWeekend.html).
+This is a generic path tracer modeled after Peter Shirley's "Ray-Tracing in a Weekend" [book](https://raytracing.github.io/books/RayTracingInOneWeekend.html).
 
 ### Showcase
 There are some interesting renders each with 100 SPP  
