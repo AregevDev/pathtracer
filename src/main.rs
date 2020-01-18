@@ -2,17 +2,17 @@ use crate::camera::Camera;
 use crate::hit::Hit;
 use crate::material::{Dielectric, Lambertian, Metal};
 use crate::ray::Ray;
-use crate::sphere::Sphere;
+use crate::scenes::{basic_scene, random_scene};
 use crate::vector::Vector3;
 use crate::world::World;
 use std::fmt::Write;
 use std::fs;
-use std::rc::Rc;
 
 mod camera;
 mod hit;
 mod material;
 mod ray;
+mod scenes;
 mod sphere;
 mod vector;
 mod world;
@@ -72,55 +72,12 @@ fn color(ray: Ray, world: &World, depth: i32) -> Vector3 {
 fn main() {
     // Output properties
     let filename = "test.ppm";
-    let nx = 500;
-    let ny = 500;
+    let nx = 1280;
+    let ny = 720;
     let ns = 100;
 
-    // Camera vectors
-    let eye = Vector3::new(4.0, 4.0, 4.0);
-    let center = Vector3::new(0.0, 0.0, 0.0);
-    let up = Vector3::unit_y();
-
-    let focus = (eye - center).length();
-    let aperture = 1.5;
-
-    let camera = Camera::new(
-        eye,
-        center,
-        up,
-        30.0,
-        nx as f32 / ny as f32,
-        aperture,
-        focus,
-    );
-
-    // World
-    let mut world = World::new();
-    world.add(Sphere::new(
-        Vector3::new(0.0, 0.0, 0.0),
-        0.5,
-        Rc::new(Lambertian::new(Vector3::new(0.1, 0.2, 0.5))),
-    ));
-    world.add(Sphere::new(
-        Vector3::new(0.0, -100.5, 0.0),
-        100.0,
-        Rc::new(Lambertian::new(Vector3::new(0.8, 0.8, 0.0))),
-    ));
-    world.add(Sphere::new(
-        Vector3::new(1.0, 0.0, 0.0),
-        0.5,
-        Rc::new(Metal::new(Vector3::new(0.8, 0.6, 0.2), 0.2)),
-    ));
-    world.add(Sphere::new(
-        Vector3::new(-1.0, 0.0, 0.0),
-        0.5,
-        Rc::new(Dielectric::new(1.5)),
-    ));
-    world.add(Sphere::new(
-        Vector3::new(-1.0, 0.0, 0.0),
-        -0.45,
-        Rc::new(Dielectric::new(1.5)),
-    ));
+    // Scene
+    let scene = random_scene(nx, ny);
 
     // Output buffer
     let mut out = String::with_capacity(nx * ny);
@@ -141,10 +98,10 @@ fn main() {
                 let u = (i as f32 + random_float()) / nx as f32;
                 let v = (j as f32 + random_float()) / ny as f32;
 
-                let ray = camera.ray(u, v);
+                let ray = scene.camera.ray(u, v);
 
                 // Compute color
-                let c = color(ray, &world, 0);
+                let c = color(ray, &scene, 0);
                 col += c;
             }
 
@@ -164,6 +121,6 @@ fn main() {
         }
     }
 
-    // Write to ppm file
+    // Write to PPM file
     fs::write(filename, out).unwrap();
 }

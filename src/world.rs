@@ -1,13 +1,18 @@
+use crate::camera::Camera;
 use crate::hit::{Hit, HitRecord};
 use crate::ray::Ray;
 
 pub struct World {
-    hits: Vec<Box<dyn Hit>>,
+    pub hits: Vec<Box<dyn Hit>>,
+    pub camera: Camera,
 }
 
 impl World {
-    pub fn new() -> Self {
-        World { hits: Vec::new() }
+    pub fn new(camera: Camera) -> Self {
+        World {
+            hits: Vec::new(),
+            camera,
+        }
     }
 
     pub fn add<H>(&mut self, hit: H)
