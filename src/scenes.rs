@@ -1,10 +1,10 @@
 use crate::camera::Camera;
 use crate::material::{Dielectric, Lambertian, Metal};
+use crate::random_float;
 use crate::sphere::Sphere;
 use crate::vector::Vector3;
 use crate::world::World;
 use std::rc::Rc;
-use crate::random_float;
 
 pub fn basic_scene(width: usize, height: usize) -> World {
     let eye = Vector3::new(4.0, 4.0, 4.0);
@@ -82,23 +82,48 @@ pub fn random_scene(width: usize, height: usize) -> World {
     for a in -11..11 {
         for b in -11..11 {
             let random_mat = random_float();
-            let sp = Vector3::new(a as f32 + 0.9 * random_float(), 0.2, b as f32 + 0.9 * random_float());
+            let sp = Vector3::new(
+                a as f32 + 0.9 * random_float(),
+                0.2,
+                b as f32 + 0.9 * random_float(),
+            );
 
             if (sp - Vector3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 if random_mat < 0.8 {
-                    world.add(Sphere::new(sp, 0.2, Rc::new(Lambertian::new(Vector3::new(random_float() * random_float(), random_float() * random_float(), random_float() * random_float())))));
-                }
-                else if random_mat < 0.95 {
-                    world.add(Sphere::new(sp, 0.2, Rc::new(Metal::new(Vector3::new(0.5 * (random_float() + 1.0), 0.5 * (random_float() + 1.0), 0.5 * (random_float() + 1.0)), 0.5 * random_float()))));
-                }
-                else {
+                    world.add(Sphere::new(
+                        sp,
+                        0.2,
+                        Rc::new(Lambertian::new(Vector3::new(
+                            random_float() * random_float(),
+                            random_float() * random_float(),
+                            random_float() * random_float(),
+                        ))),
+                    ));
+                } else if random_mat < 0.95 {
+                    world.add(Sphere::new(
+                        sp,
+                        0.2,
+                        Rc::new(Metal::new(
+                            Vector3::new(
+                                0.5 * (random_float() + 1.0),
+                                0.5 * (random_float() + 1.0),
+                                0.5 * (random_float() + 1.0),
+                            ),
+                            0.5 * random_float(),
+                        )),
+                    ));
+                } else {
                     world.add(Sphere::new(sp, 0.2, Rc::new(Dielectric::new(1.5))));
                 }
             }
         }
     }
 
-    world.add(Sphere::new(Vector3::new(0.0, 0.9, 0.0), 1.0, Rc::new(Metal::new(Vector3::new(0.0, 0.5, 0.9), 0.0))));
+    world.add(Sphere::new(
+        Vector3::new(0.0, 0.9, 0.0),
+        1.0,
+        Rc::new(Metal::new(Vector3::new(0.0, 0.5, 0.9), 0.0)),
+    ));
 
     world
 }
@@ -132,7 +157,11 @@ pub fn colored_sphere_scene(width: usize, height: usize) -> World {
     for a in -5..=5 {
         for b in -5..=5 {
             for c in -5..=5 {
-                let color = Vector3::new((a as f32 + 5.0) / 11.0, (b as f32 + 5.0) / 11.0, (c as f32 + 5.0) / 11.0);
+                let color = Vector3::new(
+                    (a as f32 + 5.0) / 11.0,
+                    (b as f32 + 5.0) / 11.0,
+                    (c as f32 + 5.0) / 11.0,
+                );
                 let sp = Vector3::new(a as f32 * 0.5, b as f32 * 0.5, c as f32 * 0.5);
 
                 world.add(Sphere::new(sp, 0.2, Rc::new(Lambertian::new(color))));

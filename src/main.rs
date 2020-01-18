@@ -1,8 +1,6 @@
-use crate::camera::Camera;
 use crate::hit::Hit;
-use crate::material::{Dielectric, Lambertian, Metal};
 use crate::ray::Ray;
-use crate::scenes::{basic_scene, random_scene, colored_sphere_scene};
+use crate::scenes::basic_scene;
 use crate::vector::Vector3;
 use crate::world::World;
 use std::fmt::Write;
@@ -77,7 +75,7 @@ fn main() {
     let ns = 100;
 
     // Scene
-    let scene = colored_sphere_scene(nx, ny);
+    let scene = basic_scene(nx, ny);
 
     // Output buffer
     let mut out = String::with_capacity(nx * ny);
