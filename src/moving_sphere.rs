@@ -1,8 +1,25 @@
+use crate::aabb::{Aabb, min};
+use crate::hit::{Hit, HitRecord};
+use crate::material::Material;
 use crate::ray::Ray;
-use crate::hit::{HitRecord, Hit};
 use crate::vector::Vector3;
 use std::rc::Rc;
-use crate::material::Material;
+
+pub fn surrounding_box(box0: Aabb, box1: Aabb) -> Aabb {
+    let small = Vector3::new(
+        min(box0.min.x, box1.min.x),
+        min(box0.min.y, box1.min.y),
+        min(box0.min.z, box1.min.z),
+    );
+
+    let big = Vector3::new(
+        min(box0.max.x, box1.max.x),
+        min(box0.max.y, box1.max.y),
+        min(box0.max.z, box1.max.z),
+    );
+
+    Aabb::new(small, big)
+}
 
 pub struct MovingSphere {
     center0: Vector3,
@@ -14,7 +31,14 @@ pub struct MovingSphere {
 }
 
 impl MovingSphere {
-    pub fn new(center0: Vector3, center1: Vector3, time0: f32, time1: f32, radius: f32, material: Rc<dyn Material>) -> Self {
+    pub fn new(
+        center0: Vector3,
+        center1: Vector3,
+        time0: f32,
+        time1: f32,
+        radius: f32,
+        material: Rc<dyn Material>,
+    ) -> Self {
         MovingSphere {
             center0,
             center1,
@@ -26,10 +50,10 @@ impl MovingSphere {
     }
 
     pub fn center(&self, time: f32) -> Vector3 {
-        (self.center1 - self.center0) * ((time - self.time0) / (self.time1 - self.time0)) + self.center0
+        (self.center1 - self.center0) * ((time - self.time0) / (self.time1 - self.time0))
+            + self.center0
     }
 }
-
 
 impl Hit for MovingSphere {
     fn hit(&self, ray: Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
@@ -60,5 +84,19 @@ impl Hit for MovingSphere {
         }
 
         result
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<Aabb> {
+        let box0 = Aabb::new(
+            self.center(t0) - Vector3::new(self.radius, self.radius, self.radius),
+            self.center(t0) + Vector3::new(self.radius, self.radius, self.radius),
+        );
+
+        let box1 = Aabb::new(
+            self.center(t1) - Vector3::new(self.radius, self.radius, self.radius),
+            self.center(t1) + Vector3::new(self.radius, self.radius, self.radius),
+        );
+
+        Some(surrounding_box(box0, box1))
     }
 }

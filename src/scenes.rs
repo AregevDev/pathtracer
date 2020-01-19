@@ -1,13 +1,15 @@
 use crate::camera::Camera;
 use crate::material::{Dielectric, Lambertian, Metal};
+use crate::moving_sphere::MovingSphere;
 use crate::random_float;
 use crate::sphere::Sphere;
 use crate::vector::Vector3;
 use crate::world::World;
 use std::rc::Rc;
-use crate::moving_sphere::MovingSphere;
+use crate::bvh::BvhNode;
+use crate::hit::Hit;
 
-pub fn basic_scene(width: usize, height: usize) -> World {
+pub fn basic_scene(width: usize, height: usize) -> (Box<dyn Hit>, Camera) {
     let eye = Vector3::new(4.0, 4.0, 4.0);
     let center = Vector3::new(0.0, 0.0, 0.0);
     let up = Vector3::unit_y();
@@ -27,7 +29,7 @@ pub fn basic_scene(width: usize, height: usize) -> World {
         1.0,
     );
 
-    let mut world = World::new(camera);
+    let mut world = World::new();
     world.add(Sphere::new(
         Vector3::new(0.0, -100.5, 0.0),
         100.0,
@@ -54,10 +56,10 @@ pub fn basic_scene(width: usize, height: usize) -> World {
         Rc::new(Dielectric::new(1.5)),
     ));
 
-    world
+    (Box::new(BvhNode::new(&mut world.hits, 0.0, 1.0)), camera)
 }
 
-pub fn random_scene(width: usize, height: usize) -> World {
+pub fn random_scene(width: usize, height: usize) -> (Box<dyn Hit>, Camera) {
     let eye = Vector3::new(13.0, 2.0, 3.0);
     let center = Vector3::new(0.0, 0.0, 0.0);
     let up = Vector3::unit_y();
@@ -77,7 +79,7 @@ pub fn random_scene(width: usize, height: usize) -> World {
         1.0,
     );
 
-    let mut world = World::new(camera);
+    let mut world = World::new();
     world.add(Sphere::new(
         Vector3::new(0.0, -1000.0, 0.0),
         1000.0,
@@ -133,10 +135,10 @@ pub fn random_scene(width: usize, height: usize) -> World {
         Rc::new(Metal::new(Vector3::new(0.0, 0.5, 0.9), 0.0)),
     ));
 
-    world
+    (Box::new(BvhNode::new(&mut world.hits, 0.0, 1.0)), camera)
 }
 
-pub fn colored_sphere_scene(width: usize, height: usize) -> World {
+pub fn colored_sphere_scene(width: usize, height: usize) -> (Box<dyn Hit>, Camera) {
     let eye = Vector3::new(-5.5, 5.5, 5.5);
     let center = Vector3::new(0.0, 0.0, 0.0);
     let up = Vector3::unit_y();
@@ -156,7 +158,7 @@ pub fn colored_sphere_scene(width: usize, height: usize) -> World {
         1.0,
     );
 
-    let mut world = World::new(camera);
+    let mut world = World::new();
 
     world.add(Sphere::new(
         Vector3::new(0.0, -1003.0, 0.0),
@@ -179,5 +181,5 @@ pub fn colored_sphere_scene(width: usize, height: usize) -> World {
         }
     }
 
-    world
+    (Box::new(BvhNode::new(&mut world.hits, 0.0, 1.0)), camera)
 }

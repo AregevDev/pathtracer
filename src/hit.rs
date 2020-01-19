@@ -1,3 +1,4 @@
+use crate::aabb::Aabb;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vector::Vector3;
@@ -23,4 +24,5 @@ impl HitRecord {
 
 pub trait Hit {
     fn hit(&self, ray: Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<Aabb>;
 }

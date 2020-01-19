@@ -1,17 +1,17 @@
 use crate::camera::Camera;
 use crate::hit::{Hit, HitRecord};
 use crate::ray::Ray;
+use crate::aabb::Aabb;
+use crate::moving_sphere::surrounding_box;
 
 pub struct World {
     pub hits: Vec<Box<dyn Hit>>,
-    pub camera: Camera,
 }
 
 impl World {
-    pub fn new(camera: Camera) -> Self {
+    pub fn new() -> Self {
         World {
             hits: Vec::new(),
-            camera,
         }
     }
 
@@ -36,5 +36,31 @@ impl Hit for World {
         }
 
         result
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<Aabb> {
+        let mut result: Option<Aabb> = None;
+        let mut temp = Aabb::default();
+
+        if self.hits.len() < 1 {
+            return None;
+        }
+
+        let bb1 = self.hits[0].bounding_box(t0, t1);
+        if let Some(bb1) = bb1 {
+            let mut bb = bb1;
+            for h in self.hits.iter().skip(1) {
+                if let Some(temp_box) = h.bounding_box(t0, t1) {
+                    bb = surrounding_box(bb, temp_box);
+                }
+                else {
+                    return None;
+                }
+            }
+
+            return Some(bb);
+        }
+
+        None
     }
 }

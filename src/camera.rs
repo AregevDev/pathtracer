@@ -1,6 +1,6 @@
-use crate::{random_in_unit_disk, random_float};
 use crate::ray::Ray;
 use crate::vector::Vector3;
+use crate::{random_float, random_in_unit_disk};
 use std::f32::consts::PI;
 
 #[derive(Debug, Default, Copy, Clone)]

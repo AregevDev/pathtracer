@@ -1,3 +1,4 @@
+use crate::aabb::Aabb;
 use crate::hit::{Hit, HitRecord};
 use crate::material::Material;
 use crate::ray::Ray;
@@ -49,5 +50,12 @@ impl Hit for Sphere {
         }
 
         result
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<Aabb> {
+        Some(Aabb::new(
+            self.center - Vector3::new(self.radius, self.radius, self.radius),
+            self.center + Vector3::new(self.radius, self.radius, self.radius),
+        ))
     }
 }

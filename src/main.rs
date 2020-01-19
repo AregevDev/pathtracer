@@ -1,20 +1,24 @@
 use crate::hit::Hit;
 use crate::ray::Ray;
-use crate::scenes::{basic_scene, random_scene};
+use crate::scenes::{basic_scene, random_scene, colored_sphere_scene};
 use crate::vector::Vector3;
 use crate::world::World;
 use std::fmt::Write;
 use std::fs;
+use chrono::Utc;
+use std::time::{Instant, SystemTime};
 
+mod aabb;
 mod camera;
 mod hit;
 mod material;
+mod moving_sphere;
 mod ray;
 mod scenes;
 mod sphere;
 mod vector;
 mod world;
-mod moving_sphere;
+mod bvh;
 
 // Generate a random float
 pub fn random_float() -> f32 {
@@ -49,7 +53,7 @@ pub fn random_in_unit_disk() -> Vector3 {
 }
 
 // Compute the final color
-fn color(ray: Ray, world: &World, depth: i32) -> Vector3 {
+fn color(ray: Ray, world: &Box<dyn Hit>, depth: i32) -> Vector3 {
     if let Some(record) = world.hit(ray, 0.0001, std::f32::MAX) {
         // Intersected
         if depth < 50 {
@@ -71,15 +75,17 @@ fn color(ray: Ray, world: &World, depth: i32) -> Vector3 {
 fn main() {
     // Output properties
     let filename = "test.ppm";
-    let nx = 1200;
-    let ny = 800;
+    let nx = 1280;
+    let ny = 720;
     let ns = 100;
 
     // Scene
-    let scene = random_scene(nx, ny);
+    let (world, cam) = colored_sphere_scene(nx, ny);
 
     // Output buffer
     let mut out = String::with_capacity(nx * ny);
+
+    let last = SystemTime::now();
 
     // Write PPM headers
     writeln!(out, "P3\n{} {}\n255", nx, ny).unwrap();
@@ -97,10 +103,10 @@ fn main() {
                 let u = (i as f32 + random_float()) / nx as f32;
                 let v = (j as f32 + random_float()) / ny as f32;
 
-                let ray = scene.camera.ray(u, v);
+                let ray = cam.ray(u, v);
 
                 // Compute color
-                let c = color(ray, &scene, 0);
+                let c = color(ray, &world, 0);
                 col += c;
             }
 
@@ -119,6 +125,8 @@ fn main() {
             writeln!(out, "{} {} {}", ir, ig, ib).unwrap();
         }
     }
+
+    println!("{:?}", last.elapsed().unwrap());
 
     // Write to PPM file
     fs::write(filename, out).unwrap();
