@@ -1,25 +1,9 @@
-use crate::aabb::{Aabb, min};
+use crate::aabb::{Aabb, min, surrounding_box};
 use crate::hit::{Hit, HitRecord};
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vector::Vector3;
 use std::rc::Rc;
-
-pub fn surrounding_box(box0: Aabb, box1: Aabb) -> Aabb {
-    let small = Vector3::new(
-        min(box0.min.x, box1.min.x),
-        min(box0.min.y, box1.min.y),
-        min(box0.min.z, box1.min.z),
-    );
-
-    let big = Vector3::new(
-        min(box0.max.x, box1.max.x),
-        min(box0.max.y, box1.max.y),
-        min(box0.max.z, box1.max.z),
-    );
-
-    Aabb::new(small, big)
-}
 
 pub struct MovingSphere {
     center0: Vector3,

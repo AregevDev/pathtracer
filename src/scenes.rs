@@ -56,7 +56,8 @@ pub fn basic_scene(width: usize, height: usize) -> (Box<dyn Hit>, Camera) {
         Rc::new(Dielectric::new(1.5)),
     ));
 
-    (Box::new(BvhNode::new(&mut world.hits, 0.0, 1.0)), camera)
+    //(Box::new(BvhNode::new(&mut world.hits, 0.0, 1.0)), camera)
+    (Box::new(world), camera)
 }
 
 pub fn random_scene(width: usize, height: usize) -> (Box<dyn Hit>, Camera) {
@@ -97,11 +98,8 @@ pub fn random_scene(width: usize, height: usize) -> (Box<dyn Hit>, Camera) {
 
             if (sp - Vector3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 if random_mat < 0.8 {
-                    world.add(MovingSphere::new(
+                    world.add(Sphere::new(
                         sp,
-                        sp + Vector3::new(0.0, 0.5 * random_float(), 0.0),
-                        0.0,
-                        1.0,
                         0.2,
                         Rc::new(Lambertian::new(Vector3::new(
                             random_float() * random_float(),
@@ -135,7 +133,8 @@ pub fn random_scene(width: usize, height: usize) -> (Box<dyn Hit>, Camera) {
         Rc::new(Metal::new(Vector3::new(0.0, 0.5, 0.9), 0.0)),
     ));
 
-    (Box::new(BvhNode::new(&mut world.hits, 0.0, 1.0)), camera)
+    // (Box::new(BvhNode::new(&mut world.hits, 0.0, 1.0)), camera)
+    (Box::new(world), camera)
 }
 
 pub fn colored_sphere_scene(width: usize, height: usize) -> (Box<dyn Hit>, Camera) {
@@ -181,5 +180,6 @@ pub fn colored_sphere_scene(width: usize, height: usize) -> (Box<dyn Hit>, Camer
         }
     }
 
-    (Box::new(BvhNode::new(&mut world.hits, 0.0, 1.0)), camera)
+    // (Box::new(BvhNode::new(world.hits, 0.0, 1.0)), camera)
+    (Box::new(world), camera)
 }

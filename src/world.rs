@@ -2,7 +2,7 @@ use crate::camera::Camera;
 use crate::hit::{Hit, HitRecord};
 use crate::ray::Ray;
 use crate::aabb::Aabb;
-use crate::moving_sphere::surrounding_box;
+use crate::aabb::surrounding_box;
 
 pub struct World {
     pub hits: Vec<Box<dyn Hit>>,

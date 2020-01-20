@@ -75,8 +75,8 @@ fn color(ray: Ray, world: &Box<dyn Hit>, depth: i32) -> Vector3 {
 fn main() {
     // Output properties
     let filename = "test.ppm";
-    let nx = 1280;
-    let ny = 720;
+    let nx = 500;
+    let ny = 500;
     let ns = 100;
 
     // Scene

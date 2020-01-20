@@ -3,7 +3,7 @@ use crate::aabb::Aabb;
 use crate::ray::Ray;
 use crate::random_float;
 use std::cmp::Ordering;
-use crate::moving_sphere::surrounding_box;
+use crate::aabb::surrounding_box;
 
 macro_rules! box_compare {
     ($f:ident, $a:ident) => {
@@ -11,11 +11,11 @@ macro_rules! box_compare {
             let box_left = a.bounding_box(0.0, 0.0).unwrap();
             let box_right = b.bounding_box(0.0, 0.0).unwrap();
 
-            if box_left.min.$a - box_right.min.$a < 0.0 {
-                return Ordering::Less;
+            return if box_left.min.$a - box_right.min.$a < 0.0 {
+                Ordering::Less
             }
             else {
-                return Ordering::Greater;
+                Ordering::Greater
             }
         }
     };
@@ -46,7 +46,7 @@ pub struct BvhNode {
 }
 
 impl BvhNode {
-    pub fn new(hits: &mut Vec<Box<dyn Hit>>, time0: f32, time1: f32) -> Self {
+    pub fn new(mut hits: Vec<Box<dyn Hit>>, time0: f32, time1: f32) -> Self {
         let axis = (3.0 * random_float()) as i32;
         if axis == 0 {
             hits.sort_by(box_x_compare);
@@ -71,9 +71,9 @@ impl BvhNode {
             right = hits.remove(0);
         }
         else {
-            let mut rest = hits.split_off(l / 2);
+            let rest = hits.split_off(l / 2);
             left = Box::new(BvhNode::new(hits, time0, time1));
-            right = Box::new(BvhNode::new(&mut rest, time0, time1));
+            right = Box::new(BvhNode::new(rest, time0, time1));
         }
 
         let box_left = left.bounding_box(time0, time1).unwrap();
