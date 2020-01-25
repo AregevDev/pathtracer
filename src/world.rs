@@ -1,6 +1,5 @@
 use crate::aabb::surrounding_box;
 use crate::aabb::Aabb;
-use crate::camera::Camera;
 use crate::hit::{Hit, HitRecord};
 use crate::ray::Ray;
 
@@ -37,9 +36,6 @@ impl Hit for World {
     }
 
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<Aabb> {
-        let mut result: Option<Aabb> = None;
-        let mut temp = Aabb::default();
-
         if self.hits.len() < 1 {
             return None;
         }

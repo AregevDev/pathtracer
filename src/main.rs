@@ -5,11 +5,10 @@ use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vector::Vector3;
 use crate::world::World;
-use chrono::Utc;
 use std::fmt::Write;
 use std::fs;
 use std::rc::Rc;
-use std::time::{Instant, SystemTime};
+use std::time::SystemTime;
 
 mod aabb;
 mod bvh;

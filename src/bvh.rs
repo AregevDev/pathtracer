@@ -29,11 +29,11 @@ pub struct NullBvhNode {
 }
 
 impl Hit for NullBvhNode {
-    fn hit(&self, ray: Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+    fn hit(&self, _ray: Ray, _t_min: f32, _t_max: f32) -> Option<HitRecord> {
         None
     }
 
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<Aabb> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<Aabb> {
         Some(self.aabb)
     }
 }
@@ -107,7 +107,7 @@ impl Hit for BvhNode {
         None
     }
 
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<Aabb> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<Aabb> {
         Some(self.aabb)
     }
 }

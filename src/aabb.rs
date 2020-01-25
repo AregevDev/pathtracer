@@ -1,14 +1,5 @@
 use crate::ray::Ray;
 use crate::vector::Vector3;
-use std::cmp;
-
-pub fn min(a: f32, b: f32) -> f32 {
-    return if a < b { a } else { b };
-}
-
-pub fn max(a: f32, b: f32) -> f32 {
-    return if a > b { a } else { b };
-}
 
 #[derive(Debug, Default, Copy, Clone)]
 pub struct Aabb {
