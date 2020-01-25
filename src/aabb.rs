@@ -34,7 +34,7 @@ impl Aabb {
             }
 
             let min = if t0 > t_min { t0 } else { t_min };
-            let max = if t1 < t_min { t1 } else { t_max };
+            let max = if t1 < t_max { t1 } else { t_max };
 
             if max <= min {
                 return false;

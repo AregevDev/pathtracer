@@ -1,9 +1,9 @@
-use crate::hit::{Hit, HitRecord};
-use crate::aabb::Aabb;
-use crate::ray::Ray;
-use crate::random_float;
-use std::cmp::Ordering;
 use crate::aabb::surrounding_box;
+use crate::aabb::Aabb;
+use crate::hit::{Hit, HitRecord};
+use crate::random_float;
+use crate::ray::Ray;
+use std::cmp::Ordering;
 
 macro_rules! box_compare {
     ($f:ident, $a:ident) => {
@@ -13,10 +13,9 @@ macro_rules! box_compare {
 
             return if box_left.min.$a - box_right.min.$a < 0.0 {
                 Ordering::Less
-            }
-            else {
+            } else {
                 Ordering::Greater
-            }
+            };
         }
     };
 }
@@ -50,11 +49,9 @@ impl BvhNode {
         let axis = (3.0 * random_float()) as i32;
         if axis == 0 {
             hits.sort_by(box_x_compare);
-        }
-        else if axis == 1 {
+        } else if axis == 1 {
             hits.sort_by(box_y_compare);
-        }
-        else {
+        } else {
             hits.sort_by(box_z_compare);
         }
 
@@ -64,13 +61,13 @@ impl BvhNode {
         let l = hits.len();
         if l == 1 {
             left = hits.remove(0);
-            right = Box::new(NullBvhNode { aabb: left.bounding_box(time0, time1).unwrap() })
-        }
-        else if l == 2 {
+            right = Box::new(NullBvhNode {
+                aabb: left.bounding_box(time0, time1).unwrap(),
+            })
+        } else if l == 2 {
             left = hits.remove(0);
-            right = hits.remove(0);
-        }
-        else {
+            right = hits.remove(1);
+        } else {
             let rest = hits.split_off(l / 2);
             left = Box::new(BvhNode::new(hits, time0, time1));
             right = Box::new(BvhNode::new(rest, time0, time1));
@@ -100,11 +97,11 @@ impl Hit for BvhNode {
                     } else {
                         Some(right)
                     }
-                },
+                }
                 (Some(left), None) => Some(left),
                 (None, Some(right)) => Some(right),
                 _ => None,
-            }
+            };
         }
 
         None

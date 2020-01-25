@@ -1,8 +1,8 @@
+use crate::aabb::surrounding_box;
+use crate::aabb::Aabb;
 use crate::camera::Camera;
 use crate::hit::{Hit, HitRecord};
 use crate::ray::Ray;
-use crate::aabb::Aabb;
-use crate::aabb::surrounding_box;
 
 pub struct World {
     pub hits: Vec<Box<dyn Hit>>,
@@ -10,9 +10,7 @@ pub struct World {
 
 impl World {
     pub fn new() -> Self {
-        World {
-            hits: Vec::new(),
-        }
+        World { hits: Vec::new() }
     }
 
     pub fn add<H>(&mut self, hit: H)
@@ -52,8 +50,7 @@ impl Hit for World {
             for h in self.hits.iter().skip(1) {
                 if let Some(temp_box) = h.bounding_box(t0, t1) {
                     bb = surrounding_box(bb, temp_box);
-                }
-                else {
+                } else {
                     return None;
                 }
             }

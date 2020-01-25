@@ -1,24 +1,26 @@
+use crate::camera::Camera;
 use crate::hit::Hit;
+use crate::material::Lambertian;
 use crate::ray::Ray;
-use crate::scenes::{basic_scene, random_scene, colored_sphere_scene};
+use crate::sphere::Sphere;
 use crate::vector::Vector3;
 use crate::world::World;
+use chrono::Utc;
 use std::fmt::Write;
 use std::fs;
-use chrono::Utc;
+use std::rc::Rc;
 use std::time::{Instant, SystemTime};
 
 mod aabb;
+mod bvh;
 mod camera;
 mod hit;
 mod material;
 mod moving_sphere;
 mod ray;
-mod scenes;
 mod sphere;
 mod vector;
 mod world;
-mod bvh;
 
 // Generate a random float
 pub fn random_float() -> f32 {
@@ -52,6 +54,53 @@ pub fn random_in_unit_disk() -> Vector3 {
     }
 }
 
+// Scene with many spheres
+pub fn colored_sphere_scene(width: usize, height: usize) -> (Box<dyn Hit>, Camera) {
+    let eye = Vector3::new(-5.5, 5.5, 5.5);
+    let center = Vector3::new(0.0, 0.0, 0.0);
+    let up = Vector3::unit_y();
+
+    let focus = (eye - center).length();
+    let aperture = 0.1;
+
+    let camera = Camera::new(
+        eye,
+        center,
+        up,
+        60.0,
+        width as f32 / height as f32,
+        aperture,
+        focus,
+        0.0,
+        1.0,
+    );
+
+    let mut world = World::new();
+
+    world.add(Sphere::new(
+        Vector3::new(0.0, -1003.0, 0.0),
+        1000.0,
+        Rc::new(Lambertian::new(Vector3::new(0.8, 0.8, 0.8))),
+    ));
+
+    for a in -5..=5 {
+        for b in -5..=5 {
+            for c in -5..=5 {
+                let color = Vector3::new(
+                    (a as f32 + 5.0) / 11.0,
+                    (b as f32 + 5.0) / 11.0,
+                    (c as f32 + 5.0) / 11.0,
+                );
+                let sp = Vector3::new(a as f32 * 0.5, b as f32 * 0.5, c as f32 * 0.5);
+
+                world.add(Sphere::new(sp, 0.2, Rc::new(Lambertian::new(color))));
+            }
+        }
+    }
+
+    (Box::new(world), camera)
+}
+
 // Compute the final color
 fn color(ray: Ray, world: &Box<dyn Hit>, depth: i32) -> Vector3 {
     if let Some(record) = world.hit(ray, 0.0001, std::f32::MAX) {
@@ -77,7 +126,7 @@ fn main() {
     let filename = "test.ppm";
     let nx = 500;
     let ny = 500;
-    let ns = 100;
+    let ns = 1;
 
     // Scene
     let (world, cam) = colored_sphere_scene(nx, ny);
