@@ -1,8 +1,8 @@
 use crate::aabb::surrounding_box;
 use crate::aabb::Aabb;
 use crate::hit::{Hit, HitRecord};
-use crate::random_float;
 use crate::ray::Ray;
+use rand::Rng;
 use std::cmp::Ordering;
 
 macro_rules! box_compare {
@@ -24,90 +24,133 @@ box_compare!(box_x_compare, x);
 box_compare!(box_y_compare, y);
 box_compare!(box_z_compare, z);
 
-pub struct NullBvhNode {
-    aabb: Aabb,
+pub struct BvhTree<'a> {
+    root: usize,
+    nodes: Vec<BvhNode<'a>>,
 }
 
-impl Hit for NullBvhNode {
-    fn hit(&self, _ray: Ray, _t_min: f32, _t_max: f32) -> Option<HitRecord> {
-        None
+impl<'a> BvhTree<'a> {
+    pub fn new(models: &'a mut [Box<dyn Hit>]) -> BvhTree {
+        let mut tree = BvhTree {
+            nodes: Vec::new(),
+            root: 0,
+        };
+        tree.root = tree.build(models);
+
+        tree
     }
 
-    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<Aabb> {
-        Some(self.aabb)
+    fn build(&mut self, models: &'a mut [Box<dyn Hit>]) -> usize {
+        let axis = rand::thread_rng().gen_range::<i32, i32, i32>(0, 3);
+        match axis {
+            0 => models.sort_by(|a, b| box_x_compare(a, b)),
+            1 => models.sort_by(|a, b| box_y_compare(a, b)),
+            2 => models.sort_by(|a, b| box_z_compare(a, b)),
+            _ => unreachable!(),
+        }
+
+        let left: usize;
+        let right: usize;
+
+        match models.len() {
+            1 => return self.add_leaf(&models[0]),
+            2 => {
+                left = self.add_leaf(&models[0]);
+                right = self.add_leaf(&models[1]);
+            }
+            _ => {
+                let half_len = models.len() / 2;
+                let (hit_left, hit_right) = models.split_at_mut(half_len);
+
+                left = self.build(hit_left);
+                right = self.build(hit_right);
+            }
+        }
+
+        if let Some(left_box) = self.nodes[left].bounding {
+            if let Some(right_box) = self.nodes[right].bounding {
+                return self.add_node(surrounding_box(left_box, right_box), left, right);
+            }
+        }
+
+        panic!("No bounding box found")
     }
-}
 
-pub struct BvhNode {
-    left: Box<dyn Hit>,
-    right: Box<dyn Hit>,
-    aabb: Aabb,
-}
+    fn add_leaf(&mut self, h: &'a Box<dyn Hit>) -> usize {
+        let next = self.nodes.len();
+        self.nodes.push(BvhNode {
+            left: None,
+            right: None,
+            hittable: Some(h),
+            bounding: h.bounding_box(0.0, 0.0),
+        });
 
-impl BvhNode {
-    pub fn new(mut hits: Vec<Box<dyn Hit>>, time0: f32, time1: f32) -> Self {
-        let axis = (3.0 * random_float()) as i32;
-        if axis == 0 {
-            hits.sort_by(box_x_compare);
-        } else if axis == 1 {
-            hits.sort_by(box_y_compare);
-        } else {
-            hits.sort_by(box_z_compare);
-        }
-
-        let left: Box<dyn Hit>;
-        let right: Box<dyn Hit>;
-
-        let l = hits.len();
-        if l == 1 {
-            left = hits.remove(0);
-            right = Box::new(NullBvhNode {
-                aabb: left.bounding_box(time0, time1).unwrap(),
-            })
-        } else if l == 2 {
-            left = hits.remove(0);
-            right = hits.remove(1);
-        } else {
-            let rest = hits.split_off(l / 2);
-            left = Box::new(BvhNode::new(hits, time0, time1));
-            right = Box::new(BvhNode::new(rest, time0, time1));
-        }
-
-        let box_left = left.bounding_box(time0, time1).unwrap();
-        let box_right = right.bounding_box(time0, time1).unwrap();
-
-        BvhNode {
-            left,
-            right,
-            aabb: surrounding_box(box_left, box_right),
-        }
+        next
     }
-}
 
-impl Hit for BvhNode {
-    fn hit(&self, ray: Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
-        if self.aabb.hit(ray, t_min, t_max) {
-            let hit_left = self.left.hit(ray, t_min, t_max);
-            let hit_right = self.right.hit(ray, t_min, t_max);
+    fn add_node(&mut self, bounding: Aabb, left: usize, right: usize) -> usize {
+        let next = self.nodes.len();
+        self.nodes.push(BvhNode {
+            left: Some(left),
+            right: Some(right),
+            hittable: None,
+            bounding: Some(bounding),
+        });
 
-            return match (hit_left, hit_right) {
-                (Some(left), Some(right)) => {
-                    if left.t < right.t {
-                        Some(left)
-                    } else {
-                        Some(right)
-                    }
+        next
+    }
+
+    fn hit_node(&self, id: usize, ray: Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        let node = &self.nodes[id];
+
+        if node.bounding.is_none()
+            || node.bounding.is_some() && node.bounding.unwrap().hit(ray, t_min, t_max)
+        {
+            match node.hittable {
+                Some(h) => return h.hit(ray, t_min, t_max),
+                None => {}
+            }
+        }
+
+        let mut hit_left: Option<HitRecord> = None;
+        let mut hit_right: Option<HitRecord> = None;
+
+        if let Some(left_index) = node.left {
+            hit_left = self.hit_node(left_index, ray, t_min, t_max);
+        }
+
+        if let Some(right_index) = node.right {
+            hit_right = self.hit_node(right_index, ray, t_min, t_max);
+        }
+
+        return match (hit_left, hit_right) {
+            (Some(left), Some(right)) => {
+                if left.t < right.t {
+                    Some(left)
+                } else {
+                    Some(right)
                 }
-                (Some(left), None) => Some(left),
-                (None, Some(right)) => Some(right),
-                _ => None,
-            };
-        }
+            }
+            (Some(left), None) => Some(left),
+            (None, Some(right)) => Some(right),
+            _ => None,
+        };
+    }
+}
 
-        None
+impl<'a> Hit for BvhTree<'a> {
+    fn hit(&self, ray: Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        self.hit_node(self.root, ray, t_min, t_max)
     }
 
     fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<Aabb> {
-        Some(self.aabb)
+        self.nodes[self.root].bounding
     }
+}
+
+pub struct BvhNode<'a> {
+    left: Option<usize>,
+    right: Option<usize>,
+    hittable: Option<&'a Box<dyn Hit>>,
+    bounding: Option<Aabb>,
 }

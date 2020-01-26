@@ -1,8 +1,9 @@
 # Dirs
 /target
 /.idea
+/temp
 
 # Files
 **/*.rs.bk
 Cargo.lock
-test.ppm
+
